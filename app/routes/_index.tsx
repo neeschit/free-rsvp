@@ -91,9 +91,9 @@ export default function Index() {
         },
 
         validate: {
-            name: (value) => value.length > 6 ? null : 'Invalid name',
+            name: (value) => value.length > 6 ? null : 'Name should be longer than 6 characters',
             date: (value) => {
-                return value.length > 1 ? null : 'Need at least one date';
+                return value.length > 0 ? null : 'Need at least one date';
             }
         },
     });
@@ -110,7 +110,14 @@ export default function Index() {
                 event?.preventDefault();
                 const validationResult = form.validate();
 
-                console.log(validationResult);
+                if (validationResult.hasErrors) {
+                    return; // TODO: Show toast/notification
+                }
+
+                // @ts-expect-error typings are wrong https://remix.run/docs/en/main/hooks/use-submit#targetordata
+                submit(form.getValues(), {
+                    method: 'post'
+                });
             }}>
                 <Fieldset legend="Event Information">
                     <Stack align="flex-start" style={{ marginTop: '1rem' }}>
