@@ -6,5 +6,14 @@ import tsconfigPaths from "vite-tsconfig-paths";
 installGlobals();
 
 export default defineConfig({
-  plugins: [remix(), tsconfigPaths()],
+  ssr: {
+    noExternal: [/@mantine/]
+  },
+  plugins: [remix({
+    future: {
+      v3_fetcherPersist: true,
+      v3_relativeSplatPath: true,
+      v3_throwAbortReason: true,
+    },
+  }), tsconfigPaths()],
 });
