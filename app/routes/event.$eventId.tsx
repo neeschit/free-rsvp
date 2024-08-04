@@ -5,6 +5,7 @@ import { headers } from "~/headers";
 import { getClient } from "~/model/client";
 import { LoaderFunctionArgs } from "@remix-run/node";
 import { getUserId } from "~/model/userId.server";
+import { Stack, Title, Text, Fieldset } from "@mantine/core";
 
 export async function loader({
     request,
@@ -12,11 +13,7 @@ export async function loader({
 }: LoaderFunctionArgs) {
     const client = getClient();
 
-    const userId = getUserId(request);
-
     const eventId = params.eventId;
-
-    console.log(userId);
 
     const result = await client.send(new QueryCommand({
         TableName: Resource.Events.name,
@@ -26,9 +23,17 @@ export async function loader({
         }
     }));
 
+    if (!result.Count || !result.Items?.length) {
+        return json({
+            result: null,
+        }, {
+            status: 403
+        });
+    }
+
     return json(
         {
-            result: result.Items
+            result: result.Items[0]
         },
         {
             headers: headers(),
@@ -38,5 +43,22 @@ export async function loader({
 
 export default function EventPage() {
     const { result } = useLoaderData<typeof loader>();
-    return <div>{JSON.stringify(result)}</div>
+
+    if (!result) {
+        return <div>Booo we done bad. Please report this to someone</div>
+    }
+
+    const events: number[] = JSON.parse(result.date);
+
+    if (!events.length) {
+        return <div>Booo we done bad. Please report this to someone</div>
+    }
+
+    return <Stack>
+        <Title>You are invited to <Text span c="blue" inherit>{result.name}</Text></Title>
+        {result.location && <Text>Location: {result.location}</Text>}
+        <Fieldset legend="Attendee Information">
+            
+        </Fieldset>
+    </Stack>
 }

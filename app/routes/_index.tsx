@@ -3,7 +3,7 @@ import { Title, Stack, Button, TextInput, Text, Fieldset, Group, ActionIcon } fr
 
 import { Resource } from "sst";
 import { PutCommand } from "@aws-sdk/lib-dynamodb";
-import { redirect, useSubmit, Form } from "@remix-run/react";
+import { redirect, useSubmit, } from "@remix-run/react";
 import { headers } from "~/headers";
 import { getClient } from "~/model/client";
 import { getUserId } from "~/model/userId.server";
@@ -41,15 +41,23 @@ export async function action({
     const eventId = getEventId(name as string);
 
     const createdAt = Date.now();
+    const location = formData.get('location');
+    const date = formData.get('date');
+    const user = formData.get('user');
+
+    console.log(date);
 
     try {
-        const result = await client.send(new PutCommand({
+        await client.send(new PutCommand({
             TableName: Resource.Events.name,
             Item: {
                 eventId,
                 ownerId,
                 name,
-                createdAt
+                createdAt,
+                location,
+                user,
+                date: JSON.stringify(date?.toString().split(',')),
             }
         }));
 
@@ -75,6 +83,7 @@ export async function loader() {
 
 type CreateEventFormData = {
     name: string;
+    user: string;
     location: string;
     date: Date[];
 }
@@ -86,16 +95,26 @@ export default function Index() {
         mode: 'uncontrolled',
         initialValues: {
             name: '',
+            user: '',
             location: '',
             date: [new Date()],
         },
 
         validate: {
             name: (value) => value.length > 6 ? null : 'Name should be longer than 6 characters',
+            user: (value) => value.length > 0 ? null : 'Inviter should be longer than 0 characters',
             date: (value) => {
                 return value.length > 0 ? null : 'Need at least one date';
             }
         },
+
+        // @ts-expect-error this is stupid, I'm transforming it anyway
+        transformValues: (values) => {
+            return {
+                ...values,
+                date: values.date.map(d => d.getTime())
+            }
+        }
     });
 
     return (
@@ -114,15 +133,15 @@ export default function Index() {
                     return; // TODO: Show toast/notification
                 }
 
-                // @ts-expect-error typings are wrong https://remix.run/docs/en/main/hooks/use-submit#targetordata
-                submit(form.getValues(), {
+                submit(form.getTransformedValues(), {
                     method: 'post'
                 });
             }}>
                 <Fieldset legend="Event Information">
                     <Stack align="flex-start" style={{ marginTop: '1rem' }}>
                         <Group align="flex-start">
-                            <TextInput name="name" label="Name" key={form.key('name')} {...form.getInputProps('name')} withAsterisk></TextInput>
+                            <TextInput name="name" label="Event Name" key={form.key('name')} {...form.getInputProps('name')} withAsterisk></TextInput>
+                            <TextInput name="user" label="Who's inviting" key={form.key('user')} {...form.getInputProps('user')} withAsterisk></TextInput>
                             <TextInput name="location" label="Location" key={form.key('location')} {...form.getInputProps('location')}></TextInput>
                         </Group>
                         <Stack>
