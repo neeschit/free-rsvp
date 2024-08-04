@@ -4,11 +4,21 @@ import '@mantine/dates/styles.css';
 import {
   Links,
   Meta,
+  MetaFunction,
   Outlet,
   Scripts,
   ScrollRestoration,
 } from "@remix-run/react";
 import { ColorSchemeScript, MantineProvider, AppShell, Text } from '@mantine/core';
+
+
+export const meta: MetaFunction = () => {
+  return [
+      { title: "RSVP for Free" },
+      { name: "description", content: "Create an event to track RSVPs for free" },
+  ];
+};
+
 
 export function Layout({ children }: { children: React.ReactNode }) {
   return (

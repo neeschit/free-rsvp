@@ -1,4 +1,4 @@
-import { ActionFunctionArgs, json, type MetaFunction } from "@remix-run/node";
+import { ActionFunctionArgs, json } from "@remix-run/node";
 import { Title, Stack, Button, TextInput, Text, Fieldset, Group, ActionIcon } from '@mantine/core';
 
 import { Resource } from "sst";
@@ -11,14 +11,7 @@ import { getEventId } from "~/model/eventId.server";
 import { DateTimePicker } from '@mantine/dates';
 import { useForm } from '@mantine/form';
 import { IconTrash, IconPlus } from '@tabler/icons-react';
-
-export const meta: MetaFunction = () => {
-    return [
-        { title: "RSVP for Free" },
-        { name: "description", content: "Welcome to Remix!" },
-    ];
-};
-
+import { EventSerialized } from "~/model/event";
 
 export async function action({
     request
@@ -28,7 +21,7 @@ export async function action({
 
     const ownerId = getUserId(request);
 
-    const name = formData.get('name');
+    const name = formData.get('name')?.toString();
 
     if (!name) {
         return json({
@@ -38,27 +31,28 @@ export async function action({
         })
     }
 
-    const eventId = getEventId(name as string);
+    const eventId = getEventId(name);
 
     const createdAt = Date.now();
-    const location = formData.get('location');
+    const location = formData.get('location')?.toString() || 'TBD';
     const date = formData.get('date');
-    const user = formData.get('user');
+    const user = formData.get('user')?.toString() || 'A Merry Soul';
 
-    console.log(date);
+    const Item: EventSerialized = {
+        eventId,
+        ownerId,
+        name,
+        createdAt,
+        location,
+        user,
+        rsvps: [],
+        date: JSON.stringify(date?.toString().split(',')),
+    };
 
     try {
         await client.send(new PutCommand({
             TableName: Resource.Events.name,
-            Item: {
-                eventId,
-                ownerId,
-                name,
-                createdAt,
-                location,
-                user,
-                date: JSON.stringify(date?.toString().split(',')),
-            }
+            Item,
         }));
 
         return redirect(`/event/${eventId}`);
