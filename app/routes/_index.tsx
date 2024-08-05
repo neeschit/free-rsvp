@@ -104,9 +104,10 @@ export default function Index() {
 
         // @ts-expect-error this is stupid, I'm transforming it anyway
         transformValues: (values) => {
+            console.log(values.date);
             return {
                 ...values,
-                date: values.date.map(d => d.getTime())
+                date: values.date.map(d => d.toISOString())
             }
         }
     });
@@ -122,6 +123,7 @@ export default function Index() {
             <form onSubmit={(event) => {
                 event?.preventDefault();
                 const validationResult = form.validate();
+                console.log(form.getTransformedValues());
 
                 if (validationResult.hasErrors) {
                     return; // TODO: Show toast/notification

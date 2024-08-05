@@ -4,13 +4,12 @@ import { json, redirect, useLoaderData, useSubmit } from "@remix-run/react";
 import { headers } from "~/headers";
 import { getClient } from "~/model/client";
 import { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/node";
-import { Stack, Title, Text, Fieldset, TextInput, Button, Card, Radio, SimpleGrid, CheckIcon } from "@mantine/core";
+import { Stack, Title, Text, Fieldset, TextInput, Button, Card, Radio, SimpleGrid, CheckIcon, Table } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import dayjs from "dayjs";
 import { EventSerialized } from "~/model/event";
 import { UpdateItemCommand } from "@aws-sdk/client-dynamodb";
 import { getUserId } from "~/model/userId.server";
-
 
 export async function action({
     request
@@ -29,8 +28,10 @@ export async function action({
     const eventId = eventIdForm.toString();
     const name = formData.get('name')?.toString() || '';
     const ownerId = formData.get('ownerId')?.toString() || '';
+    const decisionString = formData.get('decision')?.toString() || '{}';
 
     try {
+        const decision = JSON.parse(decisionString);
         await client.send(new UpdateItemCommand({
             TableName: Resource.Events.name,
             UpdateExpression: "set rsvps= list_append(rsvps, :rsvp)",
@@ -42,7 +43,6 @@ export async function action({
                     S: ownerId
                 }
             },
-
             ExpressionAttributeValues: {
                 ":rsvp": {
                     L: [{
@@ -54,19 +54,15 @@ export async function action({
                                 S: name,
                             },
                             votes: {
-                                L: [{
-                                    M: {
-                                        vote: {
-                                            S: 'Yes'
+                                L: decision.map((d: any) => { // eslint-disable-line @typescript-eslint/no-explicit-any
+                                    return {
+                                        M: {
+                                            vote: {
+                                                S: d.vote
+                                            }
                                         }
                                     }
-                                }, {
-                                    M: {
-                                        vote: {
-                                            S: 'No'
-                                        }
-                                    }
-                                }]
+                                })
                             }
                         }
                     }]
@@ -113,7 +109,7 @@ export async function loader({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const item: EventSerialized = result.Items[0] as any;
 
-    console.log(JSON.stringify(item));
+    console.log(item);
 
     return json(
         {
@@ -151,6 +147,12 @@ export default function EventPage() {
                 }
             }
         },
+        transformValues: (values) => {
+            return {
+                ...values,
+                decision: JSON.stringify(values.decision)
+            }
+        }
     });
 
     if (!events.length) {
@@ -174,6 +176,8 @@ export default function EventPage() {
                 form.setFieldValue('eventId', result.eventId);
                 form.setFieldValue('ownerId', result.ownerId);
 
+                console.log(form.getTransformedValues());
+
                 submit(form.getTransformedValues(), {
                     method: 'post'
                 });
@@ -188,6 +192,8 @@ export default function EventPage() {
                         style={{ marginBottom: '1rem' }}
                     >
                         {events.map((e, i) => {
+                            console.log(e);
+                            console.log(dayjs().toISOString());
                             return <Card key={e}>
                                 <Stack>
                                     <Title order={6}>
@@ -206,5 +212,26 @@ export default function EventPage() {
                 </Fieldset>
             </form>
         }
+        
+        <Table striped>
+            <Table.Thead>
+                <Table.Tr>
+                    <Table.Th>Name</Table.Th>
+                    {events.map(e => {
+                        return <Table.Th key={e}>{dayjs(e).format('ddd h:mmA (MMM D)')}</Table.Th>
+                    })}
+                </Table.Tr>
+            </Table.Thead>
+            <Table.Tbody>
+                {result.rsvps.map((r, idx) => {
+                    return <Table.Tr key={r.name + idx}>
+                        <Table.Th>{r.name}</Table.Th>
+                        {r.votes.map((v, i)=> {
+                            return <Table.Th key={r.name + i + v.vote}>{v.vote}</Table.Th>
+                        })}
+                    </Table.Tr>
+                })}
+            </Table.Tbody>
+        </Table>
     </Stack>
 }

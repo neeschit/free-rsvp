@@ -19,5 +19,5 @@ export type EventSerialized = EventBase & {
 }
 
 export type Event = EventBase & {
-    date: number[];
+    date: string[];
 }
