@@ -1,0 +1,12 @@
+---
+description: Describes the basic tech stack
+globs: *
+---
+
+# Tech stack
+- Remix, Express, React
+- Pnpm
+- SST [sst.config.ts](mdc:sst.config.ts)
+- Amplify AWS
+- AWS DynamoDB
+- Vite

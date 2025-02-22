@@ -144,7 +144,15 @@ export default function Index() {
                             {form.getValues().date.map((d, i) => {
                                 const firstItem = i === form.getValues().date.length - 1;
                                 return <Group align="self-end" justify="center" key={d.toISOString()}>
-                                    <DateTimePicker inputSize="xl" label="When" name={`date.${i}`} key={form.key(`date.${i}`)} {...form.getInputProps(`date.${i}`)} withAsterisk={firstItem} />
+                                    <DateTimePicker 
+                                        inputSize="xl" 
+                                        label="When" 
+                                        name={`date.${i}`} 
+                                        key={form.key(`date.${i}`)} 
+                                        {...form.getInputProps(`date.${i}`)} 
+                                        withAsterisk={firstItem}
+                                        valueFormat="MM/DD/YYYY hh:mm A"
+                                    />
 
                                     {firstItem ?
                                         <ActionIcon color="green" onClick={() => {

@@ -1,5 +1,5 @@
 {
-  "name": "remix-auth-app",
+  "name": "free-rsvp",
   "private": true,
   "sideEffects": false,
   "type": "module",
@@ -22,13 +22,16 @@
     "@remix-run/react": "^2.8.1",
     "@remix-run/serve": "^2.8.1",
     "@tabler/icons-react": "^3.11.0",
+    "aws-amplify": "^6.13.1",
     "dayjs": "^1.11.12",
     "isbot": "^4.1.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "sst": "ion"
+    "sst": "^3.0.0"
   },
   "devDependencies": {
+    "@aws-amplify/backend": "^1.14.1",
+    "@aws-amplify/backend-cli": "^1.4.11",
     "@remix-run/dev": "^2.8.1",
     "@types/react": "^18.2.20",
     "@types/react-dom": "^18.2.7",
@@ -48,6 +51,7 @@
     "vite-tsconfig-paths": "^4.2.1"
   },
   "engines": {
-    "node": ">=18.0.0"
-  }
+    "node": ">=22.0.0"
+  },
+  "packageManager": "pnpm@10.4.1+sha512.c753b6c3ad7afa13af388fa6d808035a008e30ea9993f58c6663e2bc5ff21679aa834db094987129aa4d488b86df57f7b634981b2f827cdcacc698cc0cfb88af"
 }
