@@ -7,6 +7,7 @@
     "build": "remix vite:build",
     "build:watch": "remix vite:build --watch",
     "dev": "remix vite:dev",
+    "dev:sst": "sst dev",
     "lint": "eslint --ignore-path .gitignore --cache --cache-location ./node_modules/.cache/eslint .",
     "start": "remix-serve ./build/server/index.js",
     "typecheck": "tsc"
@@ -30,8 +31,6 @@
     "sst": "^3.0.0"
   },
   "devDependencies": {
-    "@aws-amplify/backend": "^1.14.1",
-    "@aws-amplify/backend-cli": "^1.4.11",
     "@remix-run/dev": "^2.8.1",
     "@types/react": "^18.2.20",
     "@types/react-dom": "^18.2.7",
