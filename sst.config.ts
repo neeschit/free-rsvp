@@ -26,16 +26,16 @@ export default $config({
 
         new sst.aws.Remix("MyWeb", {
             link: [table],
+            domain: {
+                name: "kiddobash.com",
+                redirects: ["www.kiddobash.com"],
+            },
             invalidation: {
                 wait: true,
             },
             assets: {
                 versionedFilesCacheHeader: "public,max-age=31536000,immutable",
-            },
-            environment: {
-                AMPLIFY_AUTH_USER_POOL_ID: "us-east-1_H3LFR9rSl",
-                AMPLIFY_AUTH_USER_POOL_CLIENT_ID: "6n1tsih417uhki8jumlh04mmll",
-            },
+            }
         });
     },
 });

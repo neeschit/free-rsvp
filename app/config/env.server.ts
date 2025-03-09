@@ -5,8 +5,6 @@ import * as dotenv from 'dotenv';
 dotenv.config();
 
 const envSchema = z.object({
-  AMPLIFY_AUTH_USER_POOL_ID: z.string().min(1),
-  AMPLIFY_AUTH_USER_POOL_CLIENT_ID: z.string().min(1),
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
 });
 
