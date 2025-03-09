@@ -1,0 +1,35 @@
+---
+description: React/Remix
+globs: *.tsx, app/**/*
+---
+# Basic rules
+
+- Use proper functions in functional react. Prefer types over interfaces
+- Routes go in `app/routes/`
+- Use `.server.ts` extension for server-only code
+- Use `.module.css` extension for CSS modules
+- Colocate related files in feature-specific directories
+
+## TypeScript Guidelines
+- Use type inference when possible
+- Use `type` instead of `interface`
+- Use object parameter syntax for functions:
+```typescript
+// Correct:
+function example({ param1, param2 }: { param1: string; param2: number })
+
+// Incorrect:
+function example(param1: string, param2: number)
+```
+
+## React & Remix Patterns
+- Use functional components with hooks
+- Define components as function declarations
+- Use named exports except in `route.tsx` files
+- Use Remix's `useLoaderData` for data fetching
+
+## Component Structure
+- Keep components focused and small
+- Use error boundaries
+- Implement proper ARIA attributes
+- Use semantic HTML elements

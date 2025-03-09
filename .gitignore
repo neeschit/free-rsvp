@@ -1,0 +1,55 @@
+# Node
+node_modules
+/.cache
+
+# Environment
+.env
+.secret-*
+
+# Build outputs
+build/
+dist/
+.build
+
+# SST specific
+.sst
+.sst.config.ts
+cdk.out
+.cdk.staging
+.sst.debug.log
+sst.log
+
+
+# System files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+artifacts/
+
+#amplify-do-not-edit-begin
+amplify/\#current-cloud-backend
+amplify/.config/local-*
+amplify/logs
+amplify/mock-data
+amplify/mock-api-resources
+amplify/backend/amplify-meta.json
+amplify/backend/.temp
+build/
+dist/
+node_modules/
+aws-exports.js
+awsconfiguration.json
+amplifyconfiguration.json
+amplifyconfiguration.dart
+amplify-build-config.json
+amplify-gradle-config.json
+amplifytools.xcconfig
+.secret-*
+**.sample
+amplify_outputs.json
+#amplify-do-not-edit-end
