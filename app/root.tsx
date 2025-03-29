@@ -45,12 +45,19 @@ export function Layout({ children }: { children: React.ReactNode }) {
       <head>
         {/* Google tag (gtag.js) */}
         <script async src="https://www.googletagmanager.com/gtag/js?id=G-BYVXTHK3K3"></script>
-        <script>
-          window.dataLayer = window.dataLayer || [];
-          function gtag(){ window.dataLayer.push(arguments)}
-          gtag('js', new Date());
-          gtag('config', 'G-BYVXTHK3K3');
-        </script>
+        <script
+          suppressHydrationWarning
+          dangerouslySetInnerHTML={{
+            __html: `
+              if (typeof window !== 'undefined') {
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){ window.dataLayer.push(arguments); }
+                gtag('js', new Date());
+                gtag('config', 'G-BYVXTHK3K3');
+              }
+            `
+          }}
+        />
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <Meta />
