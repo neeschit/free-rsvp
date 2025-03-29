@@ -1,6 +1,12 @@
 import '@mantine/core/styles.css';
 import '@mantine/dates/styles.css';
 
+declare global {
+  interface Window {
+    dataLayer: any[];
+  }
+}
+
 import {
   Links,
   Meta,
@@ -37,6 +43,14 @@ export function Layout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
       <head>
+        {/* Google tag (gtag.js) */}
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-BYVXTHK3K3"></script>
+        <script>
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){ window.dataLayer.push(arguments)}
+          gtag('js', new Date());
+          gtag('config', 'G-BYVXTHK3K3');
+        </script>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <Meta />

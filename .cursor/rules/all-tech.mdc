@@ -8,6 +8,7 @@ alwaysApply: false
 - Remix, Express, React
 - Pnpm
 - SST [sst.config.ts](mdc:sst.config.ts)
-- Amplify AWS GEN 2
 - AWS DynamoDB
+- SSR first
 - Vite
+- App runs on http://localhost:5173 when dev:sst is running

@@ -1,28 +1,5 @@
 # robots.txt for kiddobash.com
 User-agent: *
 
-# Disallow WordPress-specific paths
-Disallow: /wp-admin/
-Disallow: /wp-includes/
-Disallow: /wp-content/plugins/
-Disallow: /wp-content/themes/
-Disallow: /wp-login.php
-Disallow: /xmlrpc.php
-
-# Disallow other sensitive paths
-Disallow: /admin/
-Disallow: /includes/
-Disallow: /cgi-bin/
-Disallow: /tmp/
-Disallow: /cache/
-Disallow: /*.sql$
-Disallow: /*.sql.gz$
-Disallow: /*.log$
-Disallow: /backup/
-Disallow: /.git/
-
 # Allow everything else
 Allow: /
-
-# Sitemap
-Sitemap: https://kiddobash.com/sitemap.xml 
