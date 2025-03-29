@@ -1,6 +1,7 @@
 ---
 description: React/Remix
 globs: *.tsx, app/**/*
+alwaysApply: false
 ---
 # Basic rules
 
@@ -9,6 +10,7 @@ globs: *.tsx, app/**/*
 - Use `.server.ts` extension for server-only code
 - Use `.module.css` extension for CSS modules
 - Colocate related files in feature-specific directories
+- always support dark mode with tailwind
 
 ## TypeScript Guidelines
 - Use type inference when possible

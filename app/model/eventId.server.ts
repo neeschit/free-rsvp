@@ -79,16 +79,19 @@ const randomizers = [
   ];
 
 export function getEventId(name: string) {
-    const count = 3;
-    const formattedName = name.toLocaleLowerCase().replaceAll(' ', '-');
-    let result = `${formattedName}-`;
-
-    for (let i = 0; i < count; i ++) {
-        const item = Math.floor((Math.random() * 100000) % randomizers.length);
-        result += `${randomizers[item]}-`
-    }
-
-    result += crypto.randomUUID().slice(0, 8);
-
-    return result;
+    // Create a URL-friendly name part (limited to 20 chars)
+    const namePart = name
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-') // Replace non-alphanumeric with dash
+        .replace(/^-|-$/g, '')       // Remove leading/trailing dashes
+        .slice(0, 20);               // Limit length
+    
+    // Add a timestamp component
+    const timestamp = Date.now().toString(36);
+    
+    // Add a random component (browser-safe)
+    const randomPart = Math.random().toString(36).substring(2, 10);
+    
+    // Combine all components
+    return `${namePart}-${timestamp}-${randomPart}`;
 }
