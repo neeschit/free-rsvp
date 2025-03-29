@@ -8,7 +8,6 @@ import './styles.css';
 import {
   Links,
   Meta,
-  type MetaFunction,
   Outlet,
   Scripts,
   ScrollRestoration,
@@ -20,6 +19,7 @@ import type { LoaderFunctionArgs } from 'react-router';
 import { env } from './config/env.server';
 import { Header } from './components/Header';
 import { Footer } from './components/Footer';
+import { headers as headerUtils } from './headers';
 
 export type RootLoaderData = {
   ENV: {
@@ -39,8 +39,16 @@ export async function loader({ request }: LoaderFunctionArgs) {
   return new Response(JSON.stringify(data), {
     headers: {
       'Content-Type': 'application/json',
+      ...headerUtils(),
     },
   });
+}
+
+export function headers() {
+  return {
+    "Cache-Control": "public,max-age=0,s-maxage=300,stale-while-revalidate=600",
+    "Date": new Date().toUTCString(),
+  };
 }
 
 export function Layout({ children }: { children: React.ReactNode }) {

@@ -19,6 +19,19 @@ export default function handleRequest(
   responseHeaders: Headers,
   reactRouterContext: EntryContext
 ) {
+  // Always set the Date header with the current time
+  responseHeaders.set("Date", new Date().toUTCString());
+  
+  // Ensure Cache-Control header is present
+  if (!responseHeaders.has("Cache-Control")) {
+    responseHeaders.set("Cache-Control", "public,max-age=0,s-maxage=300,stale-while-revalidate=600");
+  }
+  
+  // Remove Age header if present (CloudFront might add it)
+  if (responseHeaders.has("Age")) {
+    responseHeaders.delete("Age");
+  }
+
   return isbot(request.headers.get("user-agent") || "")
     ? handleBotRequest(
         request,
@@ -46,7 +59,6 @@ function handleBotRequest(
       <ServerRouter
         context={reactRouterContext}
         url={request.url}
-        abortDelay={ABORT_DELAY}
       />,
       {
         onAllReady() {
@@ -96,7 +108,6 @@ function handleBrowserRequest(
       <ServerRouter
         context={reactRouterContext}
         url={request.url}
-        abortDelay={ABORT_DELAY}
       />,
       {
         onShellReady() {
