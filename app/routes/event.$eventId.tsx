@@ -1,6 +1,6 @@
 import { Resource } from "sst";
 import { QueryCommand, ScanCommand } from "@aws-sdk/lib-dynamodb";
-import { redirect, useLoaderData, useSubmit, Form } from "react-router";
+import { redirect, useLoaderData, useSubmit, Form, useParams } from "react-router";
 import { headers } from "~/headers";
 import { getClient } from "~/model/client";
 import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from "react-router";
@@ -13,6 +13,14 @@ import {
 } from "~/model/event";
 import { UpdateCommand } from "@aws-sdk/lib-dynamodb";
 import { getUserId } from "~/model/userId.server";
+import { Header } from "~/components/Header";
+import { Footer } from "~/components/Footer";
+import { Button } from "~/components/ui/Button";
+import { Heading, Text } from "~/components/ui/Typography";
+import { EventDetails } from "~/components/events/EventDetails";
+import { GuestList } from "~/components/events/GuestList";
+import { RsvpForm } from "~/components/events/RsvpForm";
+import * as patterns from "~/styles/tailwind-patterns";
 
 export const meta: MetaFunction = () => {
     return [
@@ -202,22 +210,31 @@ export type EventLoaderData = {
 
 export default function EventPage() {
     const data = useLoaderData<EventLoaderData>();
+    const params = useParams();
+    const eventId = params.eventId || '';
     
     // Check for error first
     if (data.error) {
         return (
-            <main className="container mx-auto px-4 py-8 dark:bg-gray-900">
-                <h1 className="text-3xl font-bold mb-6 dark:text-white">Event not found!</h1>
-                <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-4 dark:bg-red-900/30 dark:border-red-800 dark:text-red-300">
-                    <p className="font-bold">{data.error}</p>
-                    {data.message && <p className="whitespace-pre-line">{data.message}</p>}
-                </div>
-                <div className="mt-6">
-                    <a href="/" className="text-blue-600 hover:underline dark:text-blue-400">Return to home</a>
-                    <span className="mx-2 dark:text-gray-300">or</span>
-                    <a href="/create" className="text-green-600 hover:underline dark:text-green-400">Create a new event</a>
-                </div>
-            </main>
+            <div className="flex flex-col min-h-screen">
+                <Header />
+                <main className={`flex-grow ${patterns.bgSecondary}`}>
+                    <div className={patterns.container}>
+                        <div className="py-8">
+                            <Heading level={1} className="mb-6">Event not found!</Heading>
+                            <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-4 dark:bg-red-900/30 dark:border-red-800 dark:text-red-300">
+                                <Text className="font-bold">{data.error}</Text>
+                                {data.message && <Text className="whitespace-pre-line">{data.message}</Text>}
+                            </div>
+                            <div className="mt-6 space-x-4">
+                                <Button variant="outline" as="a" href="/">Return to home</Button>
+                                <Button variant="primary" as="a" href="/create-event">Create a new event</Button>
+                            </div>
+                        </div>
+                    </div>
+                </main>
+                <Footer />
+            </div>
         );
     }
     
@@ -226,137 +243,66 @@ export default function EventPage() {
     
     // If event is undefined, show error message
     if (!event) {
-        console.log("Event is undefined", data);
         return (
-            <main className="container mx-auto px-4 py-8 dark:bg-gray-900">
-                <h1 className="text-3xl font-bold mb-6 dark:text-white">Event not found!</h1>
-                <p className="dark:text-gray-300">We couldn't find the event you requested. It's possible that:</p>
-                <ul className="list-disc ml-6 mt-2 mb-4 dark:text-gray-300">
-                    <li>The event has been canceled</li>
-                    <li>The event ID is incorrect</li>
-                    <li>The event link you followed is invalid</li>
-                </ul>
-                <div className="mt-6">
-                    <a href="/" className="text-blue-600 hover:underline dark:text-blue-400">Return to home</a>
-                    <span className="mx-2 dark:text-gray-300">or</span>
-                    <a href="/create" className="text-green-600 hover:underline dark:text-green-400">Create a new event</a>
-                </div>
-            </main>
+            <div className="flex flex-col min-h-screen">
+                <Header />
+                <main className={`flex-grow ${patterns.bgSecondary}`}>
+                    <div className={patterns.container}>
+                        <div className="py-8">
+                            <Heading level={1} className="mb-6">Event not found!</Heading>
+                            <Text>We couldn't find the event you requested. It's possible that:</Text>
+                            <ul className="list-disc ml-6 mt-2 mb-4">
+                                <li><Text>The event has been canceled</Text></li>
+                                <li><Text>The event ID is incorrect</Text></li>
+                                <li><Text>The event link you followed is invalid</Text></li>
+                            </ul>
+                            <div className="mt-6 space-x-4">
+                                <Button variant="outline" as="a" href="/">Return to home</Button>
+                                <Button variant="primary" as="a" href="/create-event">Create a new event</Button>
+                            </div>
+                        </div>
+                    </div>
+                </main>
+                <Footer />
+            </div>
         );
     }
     
     // Ensure guests is always an array
     const guests = data.guests || [];
-    const submit = useSubmit();
-
-    const userHasRsvpd = guests.some(guest => guest.SK.includes(userId));
-
+    
     return (
-        <main className="container mx-auto px-4 py-8 dark:bg-gray-900">
-            <h1 className="text-3xl font-bold mb-6 dark:text-white">{event.EventName}</h1>
-            
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-8">
-                <div className="grid md:grid-cols-2 gap-6">
-                    <div>
-                        <h2 className="text-xl font-semibold mb-4 dark:text-white">Event Details</h2>
-                        <p className="dark:text-gray-300"><span className="font-medium dark:text-white">Date:</span> {event.Date}</p>
-                        <p className="dark:text-gray-300"><span className="font-medium dark:text-white">Time:</span> {event.Time}</p>
-                        <p className="dark:text-gray-300"><span className="font-medium dark:text-white">Location:</span> {event.Location}</p>
-                        {event.Theme && <p className="dark:text-gray-300"><span className="font-medium dark:text-white">Theme:</span> {event.Theme}</p>}
-                    </div>
-                    
-                    <div>
-                        <h2 className="text-xl font-semibold mb-4 dark:text-white">RSVPs ({guests.length})</h2>
-                        <div className="space-y-2">
-                            {guests.map((guest: GuestBase) => (
-                                <div key={guest.SK} className="flex justify-between items-center py-1 border-b dark:border-gray-700">
-                                    <span className="dark:text-gray-300">{guest.DisplayName}</span>
-                                    <span className={`px-2 py-1 rounded text-sm ${
-                                        guest.RSVPStatus === 'Going' 
-                                            ? 'bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100' 
-                                            : guest.RSVPStatus === 'Not Going'
-                                                ? 'bg-red-100 text-red-800 dark:bg-red-800 dark:text-red-100'
-                                                : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-800 dark:text-yellow-100'
-                                    }`}>
-                                        {guest.RSVPStatus}
-                                    </span>
-                                </div>
-                            ))}
+        <div className="flex flex-col min-h-screen">
+            <Header />
+            <main className={`flex-grow ${patterns.bgSecondary}`}>
+                <div className={patterns.container}>
+                    <div className="py-8">
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                            <div className="lg:col-span-2">
+                                <EventDetails event={event} />
+                                
+                                {isHost && (
+                                    <div className="mt-6 flex gap-4">
+                                        <Button variant="secondary" as="a" href={`/event/${eventId}/invite`}>
+                                            Invite Guests
+                                        </Button>
+                                        <Button variant="outline" as="a" href={`/event/${eventId}/edit`}>
+                                            Edit Event
+                                        </Button>
+                                    </div>
+                                )}
+                                
+                                <GuestList guests={guests} className="mt-8" />
+                            </div>
                             
-                            {guests.length === 0 && (
-                                <p className="text-gray-500 dark:text-gray-400">No RSVPs yet. Be the first!</p>
-                            )}
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            {!userHasRsvpd && (
-                <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-                    <h2 className="text-xl font-semibold mb-4 dark:text-white">RSVP to this Event</h2>
-                    <Form method="post" className="space-y-4">
-                        <div>
-                            <label htmlFor="guestName" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                Your Name
-                            </label>
-                            <input
-                                type="text"
-                                id="guestName"
-                                name="guestName"
-                                required
-                                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-                            />
-                        </div>
-                        
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                Will you attend?
-                            </label>
-                            <div className="space-y-2">
-                                {['Going', 'Maybe', 'Not Going'].map((status) => (
-                                    <label key={status} className="flex items-center">
-                                        <input
-                                            type="radio"
-                                            name="rsvpStatus"
-                                            value={status}
-                                            required
-                                            className="h-4 w-4 text-blue-600 focus:ring-blue-500 dark:bg-gray-700"
-                                        />
-                                        <span className="ml-2 dark:text-gray-300">{status}</span>
-                                    </label>
-                                ))}
+                            <div>
+                                <RsvpForm eventId={eventId} />
                             </div>
                         </div>
-                        
-                        <button
-                            type="submit"
-                            className="w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:bg-blue-700 dark:hover:bg-blue-800 dark:focus:ring-offset-gray-800"
-                        >
-                            Submit RSVP
-                        </button>
-                    </Form>
-                </div>
-            )}
-            
-            {isHost && (
-                <div className="mt-8">
-                    <h2 className="text-xl font-semibold mb-4 dark:text-white">Host Actions</h2>
-                    <div className="flex space-x-4">
-                        <a 
-                            href={`/event/${event.PK.split('#')[1]}/edit`} 
-                            className="py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 dark:bg-green-700 dark:hover:bg-green-800 dark:focus:ring-offset-gray-800"
-                        >
-                            Edit Event
-                        </a>
-                        <a 
-                            href={`/event/${event.PK.split('#')[1]}/invite`} 
-                            className="py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 dark:bg-purple-700 dark:hover:bg-purple-800 dark:focus:ring-offset-gray-800"
-                        >
-                            Send Invitations
-                        </a>
                     </div>
                 </div>
-            )}
-        </main>
+            </main>
+            <Footer />
+        </div>
     );
 }
