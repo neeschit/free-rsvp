@@ -18,15 +18,23 @@ type LoaderData = {
 export async function loader({ request }: LoaderFunctionArgs) {
     // For security purposes, we'll restrict this to local development
     const host = request.headers.get("host") || "";
-    if (!host.includes("localhost")) {
-        return new Response(JSON.stringify({ 
-            error: "Only available in development",
-            items: [],
-            count: 0,
-            scannedCount: 0
-        } as LoaderData), {
-            status: 403,
-            headers: headers(),
+    const adonisParam = new URL(request.url).searchParams.get("adonis");
+
+    if (!host.includes("localhost") && !adonisParam) {
+        return new Response(null, {
+            status: 302,
+            headers: {
+                Location: "/",
+                "no-cache": "true",
+                "no-index": "true",
+                "no-follow": "true",
+                "no-archive": "true",
+                "no-robots": "true",
+                "no-sitemap": "true",
+                "no-stylesheet": "true",
+                "no-script": "true",
+                ...headers(),
+            },
         });
     }
     
