@@ -53,3 +53,6 @@ amplifytools.xcconfig
 **.sample
 amplify_outputs.json
 #amplify-do-not-edit-end
+
+# React Router generated types
+.react-router/

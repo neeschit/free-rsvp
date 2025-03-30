@@ -5,7 +5,11 @@
 
 declare module "sst" {
   export interface Resource {
-    "Events": {
+    "GTAG_ID": {
+      "type": "sst.sst.Secret"
+      "value": string
+    }
+    "Kiddobash": {
       "name": string
       "type": "sst.aws.Dynamo"
     }

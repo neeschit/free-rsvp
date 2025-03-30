@@ -10,26 +10,36 @@ export default $config({
         };
     },
     async run() {
-        const table = new sst.aws.Dynamo("Events", {
+        const table = new sst.aws.Dynamo("Kiddobash", {
             fields: {
-                ownerId: "string",
-                eventId: "string",
-                createdAt: "number",
+                PK: "string",
+                SK: "string",
+                HostId: "string",
+                CreatedAt: "string",
             },
-            primaryIndex: { hashKey: "eventId", rangeKey: "ownerId" },
-            localIndexes: {
-                CreateAtIndex: {
-                    rangeKey: "createdAt",
+            primaryIndex: { hashKey: "PK", rangeKey: "SK" },
+            globalIndexes: {
+                HostIndex: {
+                    hashKey: "HostId",
+                    rangeKey: "CreatedAt",
+                    projection: "all",
                 },
             },
         });
 
+        // Define secrets
+        const gtagIdSecret = new sst.Secret("GTAG_ID");
+
         new sst.aws.Remix("MyWeb", {
-            link: [table],
-            domain: {
+            link: [table, gtagIdSecret],
+            environment: {
+                NODE_ENV: process.env.NODE_ENV || "production",
+                GTAG_ID: gtagIdSecret.value,
+            },
+            domain: $app.stage === "production" ? {
                 name: "kiddobash.com",
                 redirects: ["www.kiddobash.com"],
-            },
+            } : undefined,
             invalidation: {
                 wait: true,
             },

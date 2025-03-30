@@ -1,14 +1,17 @@
 ---
-description: Describes the basic tech stack
-globs: *
-alwaysApply: false
+description: 
+globs: 
+alwaysApply: true
 ---
 
 # Tech stack
-- Remix, Express, React
+- React Router v7 upgrade from Remix, React
 - Pnpm
 - SST [sst.config.ts](mdc:sst.config.ts)
 - AWS DynamoDB
 - SSR first
 - Vite
 - App runs on http://localhost:5173 when dev:sst is running
+- don't try running dev:sst. it will always be running
+- use minimal react state
+- prefer css solutions over JS

@@ -1,50 +1,69 @@
-import '@mantine/core/styles.css';
-import '@mantine/dates/styles.css';
-
 declare global {
   interface Window {
     dataLayer: any[];
   }
 }
 
+import './styles.css';
 import {
   Links,
   Meta,
-  MetaFunction,
   Outlet,
   Scripts,
   ScrollRestoration,
   useLoaderData,
-} from "@remix-run/react";
-import { AppShell, Text, MantineProvider } from '@mantine/core';
-import { DatesProvider } from '@mantine/dates';
-import type { LoaderFunctionArgs } from '@remix-run/node';
-import { json } from '@remix-run/node';
+  useRouteError,
+  isRouteErrorResponse,
+} from 'react-router';
+import type { LoaderFunctionArgs } from 'react-router';
 import { env } from './config/env.server';
+import { Header } from './components/Header';
+import { Footer } from './components/Footer';
+import { headers as headerUtils } from './headers';
+
+export type RootLoaderData = {
+  ENV: {
+    NODE_ENV: string;
+    GTAG_ID: string;
+  };
+};
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  return json<{ ENV: typeof env }>({ 
-    ENV: {
-      NODE_ENV: env.NODE_ENV
+  const data: RootLoaderData = { 
+    ENV: {  
+      NODE_ENV: env.NODE_ENV,
+      GTAG_ID: env.GTAG_ID,
     }
+  };
+  
+  return new Response(JSON.stringify(data), {
+    headers: {
+      'Content-Type': 'application/json',
+      ...headerUtils(),
+    },
   });
 }
 
-export const meta: MetaFunction = () => {
-  return [
-    { title: "RSVP for Free" },
-    { name: "description", content: "Create an event to track RSVPs for free" },
-  ];
-};
+export function headers() {
+  return {
+    "Cache-Control": "public,max-age=0,s-maxage=300,stale-while-revalidate=600",
+    "Date": new Date().toUTCString(),
+  };
+}
 
 export function Layout({ children }: { children: React.ReactNode }) {
-  const data = useLoaderData<typeof loader>();
+  const data = useLoaderData<RootLoaderData>();
 
   return (
-    <html lang="en">
+    <html lang="en" className="dark:bg-gray-950 h-full">
       <head>
+      <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96" />
+      <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+      <link rel="shortcut icon" href="/favicon.ico" />
+      <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+      <link rel="manifest" href="/site.webmanifest" />
         {/* Google tag (gtag.js) */}
-        <script async src="https://www.googletagmanager.com/gtag/js?id=G-BYVXTHK3K3"></script>
+        <script async src={`https://www.googletagmanager.com/gtag/js?id=${data?.ENV?.GTAG_ID}`}></script>
         <script
           suppressHydrationWarning
           dangerouslySetInnerHTML={{
@@ -53,7 +72,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 window.dataLayer = window.dataLayer || [];
                 function gtag(){ window.dataLayer.push(arguments); }
                 gtag('js', new Date());
-                gtag('config', 'G-BYVXTHK3K3');
+                gtag('config', '${data?.ENV?.GTAG_ID}');
               }
             `
           }}
@@ -63,34 +82,8 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <Meta />
         <Links />
       </head>
-      <body>
-        <MantineProvider defaultColorScheme="auto">
-          <DatesProvider settings={{
-            consistentWeeks: true,
-            locale: 'en_US'
-          }}>
-            <AppShell header={{
-              height: {
-                base: 30,
-                md: 45,
-                xl: 60,
-              }
-            }}
-              footer={{
-                height: 20
-              }} style={{ fontFamily: "system-ui, sans-serif", lineHeight: "1.8" }}>
-              <AppShell.Header style={{ paddingLeft: "1rem", paddingRight: "1rem", display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <Text>☕</Text>
-              </AppShell.Header>
-              <AppShell.Main style={{ paddingLeft: "1rem", paddingRight: "1rem" }}>
-                {children}
-              </AppShell.Main>
-              <AppShell.Footer style={{ paddingLeft: "1rem", paddingRight: "1rem" }}>
-                <Text size='xs'>Free anonymous rsvps for your events.</Text>
-              </AppShell.Footer>
-            </AppShell>
-          </DatesProvider>
-        </MantineProvider>
+      <body className="text-gray-900 dark:text-gray-100 h-full">
+        {children}
         <ScrollRestoration />
         <script
           dangerouslySetInnerHTML={{
@@ -103,6 +96,86 @@ export function Layout({ children }: { children: React.ReactNode }) {
   );
 }
 
+export function ErrorBoundary() {
+  const error = useRouteError();
+  
+  // Handle 404 errors
+  if (isRouteErrorResponse(error) && error.status === 404) {
+    return (
+      <html lang="en" className="dark:bg-gray-950 h-full">
+        <head>
+          <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96" />
+          <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+          <link rel="shortcut icon" href="/favicon.ico" />
+          <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+          <link rel="manifest" href="/site.webmanifest" />
+          <meta charSet="utf-8" />
+          <meta name="viewport" content="width=device-width, initial-scale=1" />
+          <title>Page Not Found - KiddoBash</title>
+          <Meta />
+          <Links />
+        </head>
+        <body className="text-gray-900 dark:text-gray-100 flex flex-col min-h-screen h-full">
+          <Header />
+          <div className="flex-grow flex flex-col items-center justify-center px-4">
+            <h1 className="text-6xl font-bold mb-4">404</h1>
+            <h2 className="text-2xl font-semibold mb-6">Page Not Found</h2>
+            <p className="text-gray-600 mb-8 text-center">
+              Oops! The page you're looking for doesn't exist or has been moved.
+            </p>
+            <a href="/" className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+              Return Home
+            </a>
+          </div>
+          <Footer />
+          <ScrollRestoration />
+          <Scripts />
+        </body>
+      </html>
+    );
+  }
+
+  return (
+    <html lang="en" className="dark:bg-gray-950 h-full">
+      <head>
+        <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96" />
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+        <link rel="shortcut icon" href="/favicon.ico" />
+        <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+        <link rel="manifest" href="/site.webmanifest" />
+        <meta charSet="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Error - KiddoBash</title>
+        <Meta />
+        <Links />
+      </head>
+      <body className="text-gray-900 dark:text-gray-100 flex flex-col min-h-screen h-full">
+        <Header />
+        <div className="flex-grow flex flex-col items-center justify-center px-4">
+          <h1 className="text-4xl font-bold mb-4">Something went wrong</h1>
+          <p className="text-gray-600 mb-8 text-center">
+            We're sorry, an unexpected error has occurred.
+          </p>
+          <a href="/" className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+            Return Home
+          </a>
+        </div>
+        <Footer />
+        <ScrollRestoration />
+        <Scripts />
+      </body>
+    </html>
+  );
+}
+
 export default function App() {
-  return <Outlet />;
+  return (
+    <div className="flex flex-col min-h-screen">
+      <Header />
+      <div className="flex-grow">
+        <Outlet />
+      </div>
+      <Footer />
+    </div>
+  );
 }
