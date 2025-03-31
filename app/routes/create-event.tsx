@@ -1,11 +1,11 @@
 import { Resource } from "sst";
 import { redirect, Form } from "react-router";
-import { PutCommand } from "@aws-sdk/lib-dynamodb";
+import { PutCommand, TransactWriteCommand } from "@aws-sdk/lib-dynamodb";
 import type { ActionFunctionArgs, MetaFunction } from "react-router";
 import { headers } from "~/headers";
 import { getClient } from "~/model/client";
 import { getUserId } from "~/model/userId.server";
-import { createEventPK, createUserPK, createMetadataSK } from "~/model/event";
+import { createEventPK, createUserPK, createMetadataSK, createEventSK } from "~/model/event";
 import { getEventId } from "~/model/eventId.server";
 import { FormInput } from "~/components/forms/FormInput";
 import { Button } from "~/components/ui/Button";
@@ -44,6 +44,8 @@ export async function action({
   const location = formData.get('location')?.toString() || 'TBD';
   const theme = formData.get('theme')?.toString() || '';
   const hostName = formData.get('hostName')?.toString() || 'Party Host';
+  const email = formData.get('email')?.toString() || '';
+  const currentTime = new Date().toISOString();
 
   try {
     // First, ensure the user profile exists
@@ -53,33 +55,52 @@ export async function action({
         PK: createUserPK(userId),
         SK: "PROFILE",
         Name: hostName,
-        Email: formData.get('email')?.toString() || '',
-        CreatedAt: new Date().toISOString()
+        Email: email,
+        CreatedAt: currentTime
       }
     })).catch(err => {
       // Ignore condition failures (user already exists)
       console.log("User profile creation error (may be expected):", err.name);
     });
 
-    // Create the event
+    // Create both the event and the user-event relationship in a transaction
     const eventPK = createEventPK(eventId);
     
-    const eventItem = {
-      PK: eventPK,
-      SK: createMetadataSK(),
-      HostId: createUserPK(userId),
-      EventName: eventName,
-      Date: date,
-      Time: time,
-      Location: location,
-      Theme: theme || null,
-      isPublic: false,
-      CreatedAt: new Date().toISOString()
-    };
-
-    await client.send(new PutCommand({
-      TableName: Resource.Kiddobash.name,
-      Item: eventItem
+    await client.send(new TransactWriteCommand({
+      TransactItems: [
+        // Create the event
+        {
+          Put: {
+            TableName: Resource.Kiddobash.name,
+            Item: {
+              PK: eventPK,
+              SK: createMetadataSK(),
+              HostId: createUserPK(userId),
+              EventName: eventName,
+              Date: date,
+              Time: time,
+              Location: location,
+              Theme: theme || null,
+              isPublic: false,
+              CreatedAt: currentTime
+            }
+          }
+        },
+        // Create the user-event relationship
+        {
+          Put: {
+            TableName: Resource.Kiddobash.name,
+            Item: {
+              PK: createUserPK(userId),
+              SK: createEventSK(eventId),
+              Role: "HOST",
+              EventName: eventName,
+              Date: date,
+              CreatedAt: currentTime
+            }
+          }
+        }
+      ]
     }));
 
     return redirect(`/event/${eventId}`);

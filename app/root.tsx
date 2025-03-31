@@ -57,30 +57,69 @@ export function Layout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className="dark:bg-gray-950 h-full">
       <head>
-      <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96" />
-      <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-      <link rel="shortcut icon" href="/favicon.ico" />
-      <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
-      <link rel="manifest" href="/site.webmanifest" />
-        {/* Google tag (gtag.js) */}
-        <script async src={`https://www.googletagmanager.com/gtag/js?id=${data?.ENV?.GTAG_ID}`}></script>
+        {/* Preconnect to Google Analytics */}
+        <link rel="preconnect" href="https://www.googletagmanager.com" />
+        <link rel="preconnect" href="https://www.google-analytics.com" />
+        
+        {/* Optimized font loading strategy */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" crossOrigin="anonymous" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link
+          rel="preload"
+          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+          as="style"
+        />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+          rel="stylesheet"
+          media="print"
+          onLoad={(e) => {
+            const target = e.currentTarget as HTMLLinkElement;
+            target.media = 'all';
+          }}
+        />
+        
+        <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96" />
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+        <link rel="shortcut icon" href="/favicon.ico" />
+        <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+        <link rel="manifest" href="/site.webmanifest" />
+        
+        {/* Google tag (gtag.js) - defer loading to improve CWV */}
+        <script 
+          async 
+          src={`https://www.googletagmanager.com/gtag/js?id=${data?.ENV?.GTAG_ID}`}
+          defer
+        ></script>
         <script
           suppressHydrationWarning
+          defer
           dangerouslySetInnerHTML={{
             __html: `
-              if (typeof window !== 'undefined') {
-                window.dataLayer = window.dataLayer || [];
-                function gtag(){ window.dataLayer.push(arguments); }
-                gtag('js', new Date());
-                gtag('config', '${data?.ENV?.GTAG_ID}');
-              }
+              window.addEventListener('load', function() {
+                if (typeof window !== 'undefined') {
+                  window.dataLayer = window.dataLayer || [];
+                  function gtag(){ window.dataLayer.push(arguments); }
+                  gtag('js', new Date());
+                  gtag('config', '${data?.ENV?.GTAG_ID}');
+                }
+              });
             `
           }}
         />
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
+        
+        {/* Core Web Vitals and SEO optimization */}
+        <meta name="theme-color" content="#4f46e5" />
+        <meta name="color-scheme" content="light dark" />
+        <meta name="description" content="KiddoBash - Kid Birthday Party Invites made simple" />
+        
         <Meta />
         <Links />
+        
+        {/* Move Scripts to head for better loading */}
+        <Scripts />
       </head>
       <body className="text-gray-900 dark:text-gray-100 h-full">
         {children}
@@ -90,7 +129,6 @@ export function Layout({ children }: { children: React.ReactNode }) {
             __html: `window.ENV = ${JSON.stringify(data?.ENV)};`,
           }}
         />
-        <Scripts />
       </body>
     </html>
   );
@@ -114,6 +152,7 @@ export function ErrorBoundary() {
           <title>Page Not Found - KiddoBash</title>
           <Meta />
           <Links />
+          <Scripts />
         </head>
         <body className="text-gray-900 dark:text-gray-100 flex flex-col min-h-screen h-full">
           <Header />
@@ -129,7 +168,6 @@ export function ErrorBoundary() {
           </div>
           <Footer />
           <ScrollRestoration />
-          <Scripts />
         </body>
       </html>
     );
@@ -148,6 +186,7 @@ export function ErrorBoundary() {
         <title>Error - KiddoBash</title>
         <Meta />
         <Links />
+        <Scripts />
       </head>
       <body className="text-gray-900 dark:text-gray-100 flex flex-col min-h-screen h-full">
         <Header />
@@ -162,7 +201,6 @@ export function ErrorBoundary() {
         </div>
         <Footer />
         <ScrollRestoration />
-        <Scripts />
       </body>
     </html>
   );

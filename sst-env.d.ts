@@ -13,8 +13,8 @@ declare module "sst" {
       "name": string
       "type": "sst.aws.Dynamo"
     }
-    "MyWeb": {
-      "type": "sst.aws.Remix"
+    "KiddobashWeb": {
+      "type": "sst.aws.React"
       "url": string
     }
   }

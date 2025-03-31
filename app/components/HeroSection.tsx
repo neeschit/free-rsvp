@@ -5,14 +5,24 @@ export function HeroSection() {
     <section className="py-16 px-6 md:px-12">
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center gap-12">
         <div className="md:w-1/2 space-y-6">
-          <h1 className="text-4xl md:text-5xl font-bold text-gray-800 dark:text-gray-100">
+          <h1 
+            className="text-4xl md:text-5xl font-bold text-gray-800 dark:text-gray-100"
+            style={{ minHeight: '3.5rem' }}
+          >
             Kid Parties, Perfected. 🎉
           </h1>
-          <p className="text-lg text-gray-600 dark:text-gray-300">
+          <p 
+            className="text-lg text-gray-600 dark:text-gray-300"
+            style={{ minHeight: '3rem' }}
+          >
             Effortlessly send charming invites, manage RSVPs with ease, and host parties they'll never forget. 
           </p>
           <div className="flex gap-4 pt-4">
-            <Link to="/create-event" className="bg-indigo-600 text-white px-6 py-3 rounded-full text-lg font-medium hover:bg-indigo-700 transition-colors">
+            <Link 
+              to="/create-event" 
+              className="bg-indigo-600 text-white px-6 py-3 rounded-full text-lg font-medium hover:bg-indigo-700 transition-colors"
+              prefetch="intent"
+            >
               Get Started
             </Link>
           </div>

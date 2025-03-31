@@ -1,22 +1,22 @@
 import { Resource } from "sst";
-import { QueryCommand, ScanCommand } from "@aws-sdk/lib-dynamodb";
-import { redirect, useLoaderData, useSubmit, Form, useParams } from "react-router";
+import { QueryCommand, TransactWriteCommand } from "@aws-sdk/lib-dynamodb";
+import { redirect, useLoaderData, } from "react-router";
 import { headers } from "~/headers";
 import { getClient } from "~/model/client";
 import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from "react-router";
-import type { EventBase, GuestBase } from "~/model/event";
+import type { EventBase, RsvpBase } from "~/model/event";
 import { 
     createEventPK, 
     createMetadataSK, 
-    createGuestSK,
-    createUserPK
+    createRsvpSK,
+    createUserPK,
+    createUserRsvpSK,
+    extractEventIdFromPK
 } from "~/model/event";
-import { UpdateCommand } from "@aws-sdk/lib-dynamodb";
 import { getUserId } from "~/model/userId.server";
 import { Header } from "~/components/Header";
 import { Footer } from "~/components/Footer";
 import { Button } from "~/components/ui/Button";
-import { Heading, Text } from "~/components/ui/Typography";
 import { EventDetails } from "~/components/events/EventDetails";
 import { GuestList } from "~/components/events/GuestList";
 import { RsvpForm } from "~/components/events/RsvpForm";
@@ -55,23 +55,62 @@ export async function action({
     }
 
     try {
-        // Create a unique guest ID
-        const guestId = `${userId}-${Date.now()}`;
-        
-        // Create a new guest entry
-        await client.send(new UpdateCommand({
+        // Get the event details for denormalization
+        const eventResult = await client.send(new QueryCommand({
             TableName: Resource.Kiddobash.name,
-            Key: {
-                PK: createEventPK(eventId),
-                SK: createGuestSK(guestId)
-            },
-            UpdateExpression: "SET DisplayName = :name, RSVPStatus = :status, UpdatedAt = :updatedAt",
+            KeyConditionExpression: "PK = :pk AND SK = :sk",
             ExpressionAttributeValues: {
-                ":name": guestName,
-                ":status": rsvpStatus,
-                ":updatedAt": new Date().toISOString()
-            },
-            ReturnValues: "ALL_NEW"
+                ":pk": createEventPK(eventId),
+                ":sk": createMetadataSK()
+            }
+        }));
+
+        // Check if event exists
+        if (!eventResult.Items || eventResult.Items.length === 0) {
+            throw new Response('Event not found', { status: 404 });
+        }
+
+        const event = eventResult.Items[0] as EventBase;
+        const timestamp = Date.now();
+        const updateDate = new Date().toISOString();
+
+        // Use a transaction to create both entries (RSVP on event + user's RSVP record)
+        await client.send(new TransactWriteCommand({
+            TransactItems: [
+                // Create the RSVP on the event
+                {
+                    Update: {
+                        TableName: Resource.Kiddobash.name,
+                        Key: {
+                            PK: createEventPK(eventId),
+                            SK: createRsvpSK(userId, timestamp)
+                        },
+                        UpdateExpression: "SET DisplayName = :name, RSVPStatus = :status, UpdatedAt = :updatedAt",
+                        ExpressionAttributeValues: {
+                            ":name": guestName,
+                            ":status": rsvpStatus,
+                            ":updatedAt": updateDate
+                        }
+                    }
+                },
+                // Create the bidirectional relationship on the user
+                {
+                    Update: {
+                        TableName: Resource.Kiddobash.name,
+                        Key: {
+                            PK: createUserPK(userId),
+                            SK: createUserRsvpSK(eventId)
+                        },
+                        UpdateExpression: "SET EventName = :eventName, RSVPStatus = :status, Date = :date, UpdatedAt = :updatedAt",
+                        ExpressionAttributeValues: {
+                            ":eventName": event.EventName,
+                            ":status": rsvpStatus,
+                            ":date": event.Date,
+                            ":updatedAt": updateDate
+                        }
+                    }
+                }
+            ]
         }));
 
         return redirect(`/event/${eventId}`);
@@ -82,6 +121,14 @@ export async function action({
         });
     }
 }
+
+// Define the data we expect from the loader
+type EventLoaderData = {
+    event: EventBase;
+    guests: RsvpBase[];
+    isHost: boolean;
+    eventId: string;
+};
 
 export async function loader({
     request,
@@ -148,17 +195,17 @@ export async function loader({
             });
         }
 
-        // Query for all guest RSVPs for this event
+        // Query for all RSVPs for this event
         const guestsResult = await client.send(new QueryCommand({
             TableName: Resource.Kiddobash.name,
             KeyConditionExpression: "PK = :pk AND begins_with(SK, :skPrefix)",
             ExpressionAttributeValues: {
                 ":pk": event.PK,
-                ":skPrefix": "GUEST#"
+                ":skPrefix": "RSVP#"
             }
         }));
 
-        const guests = (guestsResult.Items || []) as GuestBase[];
+        const guests = (guestsResult.Items || []) as RsvpBase[];
 
         // Check if user is authorized to view this event
         const isHost = event.HostId === createUserPK(userId);
@@ -172,105 +219,33 @@ export async function loader({
             });
         }
 
-        return {
-            event: {
-                ...event,
-                PK: event.PK,
-                SK: event.SK || createMetadataSK(),
-                HostId: event.HostId,
-                EventName: event.EventName,
-                Date: event.Date,
-                Time: event.Time,
-                Location: event.Location,
-                Theme: event.Theme || null,
-                isPublic: !!event.isPublic,
-                CreatedAt: event.CreatedAt || new Date().toISOString()
-            },
+        // We got all the data we need, return it
+        return new Response(JSON.stringify({
+            event,
             guests,
-            userId,
-            isHost
-        };
-    } catch (error: unknown) {
-        console.error("Error loading event:", error);
-        throw new Response(error instanceof Error ? error.message : String(error), {
+            isHost,
+            eventId: extractEventIdFromPK(event.PK) || eventId
+        } as EventLoaderData), {
+            headers: headers(),
+        });
+
+    } catch (error) {
+        console.error("Event loader error:", error);
+        throw new Response(null, { 
             status: 500,
+            statusText: "Server Error",
             headers: headers(),
         });
     }
 }
 
-export type EventLoaderData = {
-    event?: EventBase;
-    guests?: GuestBase[];
-    userId: string;
-    isHost: boolean;
-    error?: string;
-    message?: string;
-};
-
+// This is the main React component for the event page
 export default function EventPage() {
     const data = useLoaderData<EventLoaderData>();
-    const params = useParams();
-    const eventId = params.eventId || '';
-    
-    // Check for error first
-    if (data.error) {
-        return (
-            <div className="flex flex-col min-h-screen">
-                <Header />
-                <main className={`flex-grow ${patterns.bgSecondary}`}>
-                    <div className={patterns.container}>
-                        <div className="py-8">
-                            <Heading level={1} className="mb-6">Event not found!</Heading>
-                            <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-4 dark:bg-red-900/30 dark:border-red-800 dark:text-red-300">
-                                <Text className="font-bold">{data.error}</Text>
-                                {data.message && <Text className="whitespace-pre-line">{data.message}</Text>}
-                            </div>
-                            <div className="mt-6 space-x-4">
-                                <Button variant="outline" as="a" href="/">Return to home</Button>
-                                <Button variant="primary" as="a" href="/create-event">Create a new event</Button>
-                            </div>
-                        </div>
-                    </div>
-                </main>
-                <Footer />
-            </div>
-        );
-    }
-    
-    const { userId, isHost } = data;
-    const event = data.event;
-    
-    // If event is undefined, show error message
-    if (!event) {
-        return (
-            <div className="flex flex-col min-h-screen">
-                <Header />
-                <main className={`flex-grow ${patterns.bgSecondary}`}>
-                    <div className={patterns.container}>
-                        <div className="py-8">
-                            <Heading level={1} className="mb-6">Event not found!</Heading>
-                            <Text>We couldn't find the event you requested. It's possible that:</Text>
-                            <ul className="list-disc ml-6 mt-2 mb-4">
-                                <li><Text>The event has been canceled</Text></li>
-                                <li><Text>The event ID is incorrect</Text></li>
-                                <li><Text>The event link you followed is invalid</Text></li>
-                            </ul>
-                            <div className="mt-6 space-x-4">
-                                <Button variant="outline" as="a" href="/">Return to home</Button>
-                                <Button variant="primary" as="a" href="/create-event">Create a new event</Button>
-                            </div>
-                        </div>
-                    </div>
-                </main>
-                <Footer />
-            </div>
-        );
-    }
-    
-    // Ensure guests is always an array
-    const guests = data.guests || [];
-    
+
+    // Destructure the data for easier access
+    const { event, guests, isHost, eventId } = data;
+
     return (
         <div className="flex flex-col min-h-screen">
             <Header />

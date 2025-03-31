@@ -1,11 +1,18 @@
 import type { MetaFunction } from "react-router";
 import { headers } from "~/headers";
 import { Link } from "react-router";
+import { Suspense, lazy } from "react";
 
-import { Header } from "~/components/Header";
+// Immediate load for critical hero section
 import { HeroSection } from "~/components/HeroSection";
-import { FeatureGrid } from "~/components/FeatureGrid";
-import { AboutBlock } from "~/components/AboutBlock";
+
+// Lazy load lower-priority components
+const FeatureGrid = lazy(() => import("~/components/FeatureGrid").then(module => ({ 
+  default: module.FeatureGrid 
+})));
+const AboutBlock = lazy(() => import("~/components/AboutBlock").then(module => ({ 
+  default: module.AboutBlock 
+})));
 
 export const meta: MetaFunction = () => {
   return [
@@ -24,9 +31,23 @@ export default function Index() {
     return (
         <>
             <main className="flex flex-col min-h-screen">
-                <HeroSection />
-                <FeatureGrid />
-                <AboutBlock />
+                {/* High priority content - render immediately */}
+                <div className="contents">
+                    <HeroSection />
+                </div>
+                
+                {/* Lower priority content - can be loaded after initial paint */}
+                <Suspense fallback={<div className="h-96"></div>}>
+                    <div style={{ contentVisibility: 'auto' }}>
+                        <FeatureGrid />
+                    </div>
+                </Suspense>
+                
+                <Suspense fallback={<div className="h-48"></div>}>
+                    <div style={{ contentVisibility: 'auto' }}>
+                        <AboutBlock />
+                    </div>
+                </Suspense>
             </main>
         </>
     );

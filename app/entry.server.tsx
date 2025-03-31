@@ -27,6 +27,11 @@ export default function handleRequest(
     responseHeaders.set("Cache-Control", "public,max-age=0,s-maxage=300,stale-while-revalidate=600");
   }
   
+  // Set Expires header to match s-maxage (5 minutes)
+  const expiresDate = new Date();
+  expiresDate.setTime(expiresDate.getTime() + 300 * 1000); // 5 minutes
+  responseHeaders.set("Expires", expiresDate.toUTCString());
+  
   // Remove Age header if present (CloudFront might add it)
   if (responseHeaders.has("Age")) {
     responseHeaders.delete("Age");

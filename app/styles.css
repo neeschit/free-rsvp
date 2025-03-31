@@ -12,6 +12,8 @@
   /* You can add more customizations here if needed */
 }
 
+/* Fonts are loaded via preload in root.tsx */
+
 html,
 body {
   @apply bg-white dark:bg-gray-950;

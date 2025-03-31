@@ -8,7 +8,11 @@
     "dev": "react-router dev",
     "dev:sst": "sst dev",
     "start": "react-router-serve ./build/server/index.js",
-    "typecheck": "react-router typegen && tsc"
+    "typecheck": "react-router typegen && tsc",
+    "reset-db:dev": "node hacks/batch-reset-tables.js",
+    "reset-db:prod": "node hacks/batch-reset-tables.js production",
+    "force-reset-db:dev": "node hacks/force-reset-table.js",
+    "force-reset-db:prod": "node hacks/force-reset-table.js production"
   },
   "dependencies": {
     "@react-router/fs-routes": "^7.4.1",
@@ -30,7 +34,7 @@
     "autoprefixer": "^10.4.21",
     "dotenv": "^16.4.7",
     "react-router-devtools": "^1.1.0",
-    "sst": "3.9.33",
+    "sst": "3.11.11",
     "tailwindcss": "^4.0.0",
     "typescript": "^5.7.2",
     "vite": "^5.4.11",

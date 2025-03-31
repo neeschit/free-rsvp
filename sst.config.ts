@@ -4,7 +4,7 @@
 export default $config({
     app(input) {
         return {
-            name: "remix-auth-app",
+            name: "kiddobash",
             removal: input?.stage === "production" ? "retain" : "remove",
             home: "aws",
         };
@@ -16,6 +16,8 @@ export default $config({
                 SK: "string",
                 HostId: "string",
                 CreatedAt: "string",
+                RSVPStatus: "string",
+                Date: "string",
             },
             primaryIndex: { hashKey: "PK", rangeKey: "SK" },
             globalIndexes: {
@@ -24,13 +26,18 @@ export default $config({
                     rangeKey: "CreatedAt",
                     projection: "all",
                 },
+                RSVPStatusIndex: {
+                    hashKey: "RSVPStatus",
+                    rangeKey: "Date",
+                    projection: "all",
+                },
             },
         });
 
         // Define secrets
         const gtagIdSecret = new sst.Secret("GTAG_ID");
 
-        new sst.aws.Remix("MyWeb", {
+        new sst.aws.React("KiddobashWeb", {
             link: [table, gtagIdSecret],
             environment: {
                 NODE_ENV: process.env.NODE_ENV || "production",

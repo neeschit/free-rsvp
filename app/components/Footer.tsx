@@ -19,6 +19,7 @@ export function Footer() {
           
           <div className="flex flex-col items-center md:items-end">
             <div className="flex gap-8 mb-4">
+              <Link to="/my-events" className="text-sm text-gray-500 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400">My Events</Link>
               <Link to="/create-event" className="text-sm text-gray-500 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400">Create Event</Link>
               <Link to="/terms" className="text-sm text-gray-500 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400">Terms</Link>
             </div>

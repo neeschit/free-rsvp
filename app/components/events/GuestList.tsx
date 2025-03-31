@@ -1,84 +1,76 @@
-import type { GuestBase } from '~/model/event';
-import { Card } from '~/components/ui/Card';
-import { Text } from '~/components/ui/Typography';
-import { RsvpBadge } from '~/components/ui/StatusBadge';
-import * as patterns from '~/styles/tailwind-patterns';
+import type { RsvpBase } from "~/model/event";
+import { Heading, Text } from "~/components/ui/Typography";
+import { extractUserIdFromRsvpSK } from "~/model/event";
 
 type GuestListProps = {
-  guests: GuestBase[];
+  guests: RsvpBase[];
   className?: string;
 };
 
 export function GuestList({ guests, className = '' }: GuestListProps) {
-  const guestsByStatus = {
-    Going: guests.filter(g => g.RSVPStatus === 'Going'),
-    Maybe: guests.filter(g => g.RSVPStatus === 'Maybe'),
-    NotGoing: guests.filter(g => g.RSVPStatus === 'Not Going')
-  };
-
-  const totalResponses = guests.length;
-  const goingCount = guestsByStatus.Going.length;
-
+  const goingGuests = guests.filter(g => g.RSVPStatus === 'Going');
+  const maybeGuests = guests.filter(g => g.RSVPStatus === 'Maybe');
+  const notGoingGuests = guests.filter(g => g.RSVPStatus === 'Not Going');
+  
+  if (guests.length === 0) {
+    return (
+      <section className={`p-6 bg-white rounded-lg shadow-sm dark:bg-gray-800 ${className}`}>
+        <Heading level={2} className="text-xl mb-4">Guest List</Heading>
+        <Text>No RSVPs yet</Text>
+      </section>
+    );
+  }
+  
   return (
-    <Card className={className} title={`Guest List (${goingCount} Attending)`}>
+    <section className={`p-6 bg-white rounded-lg shadow-sm dark:bg-gray-800 ${className}`}>
+      <Heading level={2} className="text-xl mb-4">Guest List</Heading>
+      
       <div className="space-y-6">
-        <div className="flex flex-wrap gap-2">
-          <RsvpBadge status="Going">
-            {guestsByStatus.Going.length} Going
-          </RsvpBadge>
-          <RsvpBadge status="Maybe">
-            {guestsByStatus.Maybe.length} Maybe
-          </RsvpBadge>
-          <RsvpBadge status="Not Going">
-            {guestsByStatus.NotGoing.length} Not Going
-          </RsvpBadge>
-        </div>
-
-        {totalResponses === 0 ? (
-          <Text variant="muted" className="italic">No RSVPs yet</Text>
-        ) : (
+        {goingGuests.length > 0 && (
           <div>
-            {guestsByStatus.Going.length > 0 && (
-              <div className="mb-4">
-                <Text variant="secondary" className="font-medium text-sm mb-2">Going</Text>
-                <ul className="space-y-1">
-                  {guestsByStatus.Going.map((guest) => (
-                    <li key={guest.SK}>
-                      <Text>{guest.DisplayName}</Text>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-
-            {guestsByStatus.Maybe.length > 0 && (
-              <div className="mb-4">
-                <Text variant="secondary" className="font-medium text-sm mb-2">Maybe</Text>
-                <ul className="space-y-1">
-                  {guestsByStatus.Maybe.map((guest) => (
-                    <li key={guest.SK}>
-                      <Text>{guest.DisplayName}</Text>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-
-            {guestsByStatus.NotGoing.length > 0 && (
-              <div>
-                <Text variant="secondary" className="font-medium text-sm mb-2">Not Going</Text>
-                <ul className="space-y-1">
-                  {guestsByStatus.NotGoing.map((guest) => (
-                    <li key={guest.SK}>
-                      <Text>{guest.DisplayName}</Text>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
+            <Heading level={3} className="text-lg font-semibold text-green-600 dark:text-green-400 mb-2">
+              Going ({goingGuests.length})
+            </Heading>
+            <ul className="ml-5 list-disc space-y-1">
+              {goingGuests.map(guest => (
+                <li key={extractUserIdFromRsvpSK(guest.SK) || guest.SK}>
+                  <Text>{guest.DisplayName}</Text>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+        
+        {maybeGuests.length > 0 && (
+          <div>
+            <Heading level={3} className="text-lg font-semibold text-yellow-600 dark:text-yellow-400 mb-2">
+              Maybe ({maybeGuests.length})
+            </Heading>
+            <ul className="ml-5 list-disc space-y-1">
+              {maybeGuests.map(guest => (
+                <li key={extractUserIdFromRsvpSK(guest.SK) || guest.SK}>
+                  <Text>{guest.DisplayName}</Text>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+        
+        {notGoingGuests.length > 0 && (
+          <div>
+            <Heading level={3} className="text-lg font-semibold text-red-600 dark:text-red-400 mb-2">
+              Not Going ({notGoingGuests.length})
+            </Heading>
+            <ul className="ml-5 list-disc space-y-1">
+              {notGoingGuests.map(guest => (
+                <li key={extractUserIdFromRsvpSK(guest.SK) || guest.SK}>
+                  <Text>{guest.DisplayName}</Text>
+                </li>
+              ))}
+            </ul>
           </div>
         )}
       </div>
-    </Card>
+    </section>
   );
 } 

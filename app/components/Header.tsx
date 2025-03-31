@@ -16,6 +16,9 @@ export function Header() {
           <span className="font-bold text-2xl text-indigo-600 dark:text-indigo-400">Kiddobash</span>
         </Link>
         <nav className="hidden md:flex items-center gap-6">
+          <Link to="/my-events" className="text-gray-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400">
+            My Events
+          </Link>
           <Link to="/create-event" className="bg-indigo-600 text-white px-4 py-2 rounded-full hover:bg-indigo-700 transition-colors">
             Create New Event
           </Link>
@@ -34,6 +37,13 @@ export function Header() {
       {/* Mobile menu dropdown */}
       {mobileMenuOpen && (
         <div className="md:hidden absolute top-full left-0 right-0 bg-white dark:bg-gray-900 shadow-md dark:shadow-gray-800 py-4 px-6 flex flex-col gap-4">
+          <Link 
+            to="/my-events" 
+            className="text-gray-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 text-center"
+            onClick={() => setMobileMenuOpen(false)}
+          >
+            My Events
+          </Link>
           <Link 
             to="/create-event" 
             className="bg-indigo-600 text-white px-4 py-2 rounded-full hover:bg-indigo-700 transition-colors text-center mt-2"
