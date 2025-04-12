@@ -9,13 +9,13 @@ export function HeroSection() {
             className="text-4xl md:text-5xl font-bold text-gray-800 dark:text-gray-100"
             style={{ minHeight: '3.5rem' }}
           >
-            Kid Parties, Perfected. 🎉
+            Effortless Kids Party Planning & Invites 🎉
           </h1>
           <p 
             className="text-lg text-gray-600 dark:text-gray-300"
             style={{ minHeight: '3rem' }}
           >
-            Effortlessly send charming invites, manage RSVPs with ease, and host parties they'll never forget. 
+            Plan your child's birthday party easily with Kiddobash. Create and send beautiful invites, track RSVPs simply, and coordinate everything for a stress-free celebration.
           </p>
           <div className="flex gap-4 pt-4">
             <Link 

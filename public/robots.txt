@@ -1,5 +1,8 @@
 # robots.txt for kiddobash.com
 User-agent: *
 
+# Disallow event pages as they shouldn't be crawled
+Disallow: /event/
+
 # Allow everything else
 Allow: /

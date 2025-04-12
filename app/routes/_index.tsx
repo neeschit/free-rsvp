@@ -1,6 +1,5 @@
 import type { MetaFunction } from "react-router";
 import { headers } from "~/headers";
-import { Link } from "react-router";
 import { Suspense, lazy } from "react";
 
 // Immediate load for critical hero section
@@ -16,8 +15,8 @@ const AboutBlock = lazy(() => import("~/components/AboutBlock").then(module => (
 
 export const meta: MetaFunction = () => {
   return [
-    { title: "Kiddobash - Kid Birthday Party Invites" },
-    { name: "description", content: "Send adorable invites, track RSVPs, and make party magic happen — all in one place." },
+    { title: "Kiddobash | Simple & Stress-Free Kids Party Planning & Invites" },
+    { name: "description", content: "Plan your child's next birthday party effortlessly with Kiddobash! Create beautiful invites, track RSVPs easily, and coordinate your event. Free & simple party planning." },
   ];
 };
 

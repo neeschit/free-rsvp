@@ -7,31 +7,31 @@ type Feature = {
 export function FeatureGrid() {
   const features: Feature[] = [
     {
-      title: "Custom Themes",
-      description: "Unicorns, dinosaurs, spaceships. Find the perfect theme your kiddo loves.",
+      title: "Beautiful Invitation Themes",
+      description: "Choose from playful themes or customize your own for the perfect kids' party invite.",
       icon: "🎨"
     },
     {
-      title: "RSVP Tracking",
-      description: "No more chasing replies. Know exactly who's coming",
+      title: "Simple RSVP Tracking",
+      description: "Easily track guest responses (Going, Not Going, Maybe) in real-time. No more chasing replies!",
       icon: "📋"
     },
     {
-      title: "SMS Invites",
-      description: "Instantly deliver invites via SMS",
-      icon: "📱"
+      title: "Easy Guest Management",
+      description: "Manage your guest list effortlessly, including anonymous RSVP options for privacy.",
+      icon: "👥"
     },
     {
-      title: "Party Management",
-      description: "Communicate with guests easily",
-      icon: "🎁"
+      title: "Party Coordination Tools",
+      description: "Optional features to manage food, gifts, and activities, making party planning simple.",
+      icon: "🎈"
     }
   ];
 
   return (
     <section className="py-16 px-6 md:px-12 bg-gray-50 dark:bg-gray-800">
       <div className="max-w-7xl mx-auto">
-        <h2 className="text-3xl font-bold text-center mb-12 dark:text-gray-100">Make Birthday Dreams Come True—Effortlessly!</h2>
+        <h2 className="text-3xl font-bold text-center mb-12 dark:text-gray-100">Core Features for Stress-Free Party Planning</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {features.map((feature, index) => (
             <div key={index} className="bg-white dark:bg-gray-700 p-6 rounded-lg shadow-md hover:scale-105 transition-transform">
