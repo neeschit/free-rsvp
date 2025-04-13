@@ -142,7 +142,6 @@ export async function loader({
         });
     }
 
-    
     const userId = getUserId(request);
 
     try {
@@ -194,6 +193,18 @@ export async function loader({
             });
         }
 
+        // Check if user is the host
+        const isHost = userId && event.HostId === createUserPK(userId);
+        
+        // If not the host and not already on the RSVP page, redirect to it
+        if (!isHost) {
+            // Check if we're on the main event page (not already on rsvp)
+            const url = new URL(request.url);
+            if (!url.pathname.endsWith('/rsvp')) {
+                return redirect(`/rsvp/${eventId}`);
+            }
+        }
+
         // Query for all RSVPs for this event
         const guestsResult = await client.send(new QueryCommand({
             TableName: Resource.Kiddobash.name,
@@ -205,18 +216,6 @@ export async function loader({
         }));
 
         const guests = (guestsResult.Items || []) as RsvpBase[];
-
-        // Check if user is authorized to view this event
-        const isHost = event.HostId === createUserPK(userId);
-        const hasRsvp = guests.some(guest => guest.SK.includes(userId));
-        const isAuthorized = isHost || hasRsvp || event.isPublic;
-
-        if (!isAuthorized) {
-            return redirect('/', {
-                status: 403,
-                statusText: "Not authorized to view this event"
-            });
-        }
 
         // We got all the data we need, return it
         return {

@@ -11,7 +11,7 @@ import { FormInput } from "~/components/forms/FormInput";
 import { DateInput } from "~/components/forms/DateInput";
 import { Button } from "~/components/ui/Button";
 import { Card } from "~/components/ui/Card";
-import { Heading, Text } from "~/components/ui/Typography";
+import { Heading, Text, Label } from "~/components/ui/Typography";
 import { container, bgSecondary, textPrimary, formSection } from "~/styles/tailwind-patterns";
 import { useState } from "react";
 import { addDays, addWeeks, addMonths } from "~/utils/dateUtils";
@@ -46,6 +46,7 @@ export async function action({
   const theme = formData.get('theme')?.toString() || '';
   const hostName = formData.get('hostName')?.toString() || 'Party Host';
   const email = formData.get('email')?.toString() || '';
+  const isPublic = formData.get('isPublic') === 'true';
   const currentTime = new Date().toISOString();
 
   try {
@@ -82,7 +83,7 @@ export async function action({
               Time: time,
               Location: location,
               Theme: theme || null,
-              isPublic: false,
+              isPublic: isPublic,
               CreatedAt: currentTime
             }
           }
@@ -281,6 +282,22 @@ export default function CreateEvent() {
                     type="email"
                     placeholder="alex@example.com"
                   />
+                </div>
+
+                <div className="mt-4">
+                  <Label htmlFor="isPublic" className="flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      id="isPublic"
+                      name="isPublic"
+                      value="true"
+                      className="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded dark:bg-gray-700 dark:border-gray-600"
+                    />
+                    <span>Make this event public</span>
+                  </Label>
+                  <Text className="text-xs text-gray-500 dark:text-gray-400 mt-1 ml-6">
+                    Public events can be viewed by anyone with the link. Private events require an invitation.
+                  </Text>
                 </div>
               </div>
               

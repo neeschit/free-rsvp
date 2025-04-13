@@ -3,6 +3,8 @@ User-agent: *
 
 # Disallow event pages as they shouldn't be crawled
 Disallow: /event/
+# Disallow specific RSVP pages
+Disallow: /rsvp/
 
 # Allow everything else
 Allow: /

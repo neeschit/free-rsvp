@@ -79,6 +79,11 @@ export function createRsvpSK(userId: string, timestamp?: number): string {
     return `RSVP#${userId}#${ts}`;
 }
 
+// New function for a static (non-timestamped) RSVP SK within an Event
+export function createStaticRsvpSK(userId: string): string {
+    return `RSVP#${userId}`;
+}
+
 export function createProfileSK(): string {
     return "PROFILE";
 }

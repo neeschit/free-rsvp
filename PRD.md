@@ -149,8 +149,10 @@ Kiddobash makes children's party planning simple and stress-free, from invitatio
 ## 📃 Disclaimer & Terms (Draft)
 
 - Kiddobash is a free tool created to help parents plan and manage children's parties with ease.
-- Kiddobash does not collect or sell personal data beyond what is required for RSVP functionality.
-- All event data is publicly accessible right now, but is not crawleable to bots.
+- Kiddobash does not collect or sell personal data beyond what is required for RSVP functionality (using anonymous identifiers).
+- Events created through the standard flow are private by default and only accessible via their unique link (`isPublic: false`). 
+- Publicly viewable events (`isPublic: true`) may exist but are not the default. Access control mechanisms are in place for private events.
+- Event data associated with private events is not intended to be crawled by search engines.
 - Kiddobash is not responsible for the actions of event attendees or the outcomes of events.
 - All content (themes, invites, illustrations) is for personal, non-commercial use only.
 - Terms may be updated over time and will be reflected here.

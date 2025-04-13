@@ -46,7 +46,7 @@ Okay, based on our discussion about the data model and the goal of creating priv
 
 **5. Privacy:**
 
-*   All events created through this page must default to `private` (`isPublic: false`). Public event creation is not part of this feature's scope initially.
+*   All events created through this page must default to `private` (`isPublic: false`). Public event creation is not part of this feature's scope initially. This ensures event details are only shared via the unique event link.
 
 **6. User Experience:**
 
