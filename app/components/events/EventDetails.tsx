@@ -5,10 +5,11 @@ import * as patterns from '~/styles/tailwind-patterns';
 
 type EventDetailsProps = {
   event: EventBase;
+  isHost: boolean;
   className?: string;
 };
 
-export function EventDetails({ event, className = '' }: EventDetailsProps) {
+export function EventDetails({ event, isHost, className = '' }: EventDetailsProps) {
   const formatDate = (dateString: string) => {
     if (!dateString) return 'TBD';
     
@@ -28,10 +29,22 @@ export function EventDetails({ event, className = '' }: EventDetailsProps) {
   };
 
   return (
-    <Card className={className} title="Event Details">
+    <Card className={className}>
+      <div className="flex justify-between items-start mb-2">
+        <Heading level={2}>Event Details</Heading>
+        {isHost && (
+            <a 
+                href="#invite-guests" 
+                className="lg:hidden text-xs text-blue-600 dark:text-blue-400 hover:underline whitespace-nowrap ml-4 mt-1"
+            >
+                Start Inviting
+            </a>
+        )}
+      </div>
+
       <div className="space-y-4">
         <div>
-          <Heading level={2}>{event.EventName}</Heading>
+          <Heading level={3}>{event.EventName}</Heading>
           {event.Theme && (
             <Text variant="secondary" className="italic">Theme: {event.Theme}</Text>
           )}

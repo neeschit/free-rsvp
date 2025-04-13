@@ -1,6 +1,6 @@
 import { Resource } from "sst";
 import { QueryCommand, TransactWriteCommand } from "@aws-sdk/lib-dynamodb";
-import { redirect, useLoaderData, } from "react-router";
+import { redirect, useLoaderData, Form } from "react-router";
 import { headers } from "~/headers";
 import { getClient } from "~/model/client";
 import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from "react-router";
@@ -19,7 +19,6 @@ import { Footer } from "~/components/Footer";
 import { Button } from "~/components/ui/Button";
 import { EventDetails } from "~/components/events/EventDetails";
 import { GuestList } from "~/components/events/GuestList";
-import { RsvpForm } from "~/components/events/RsvpForm";
 import * as patterns from "~/styles/tailwind-patterns";
 
 export const meta: MetaFunction = () => {
@@ -220,14 +219,12 @@ export async function loader({
         }
 
         // We got all the data we need, return it
-        return new Response(JSON.stringify({
+        return {
             event,
             guests,
             isHost,
             eventId: extractEventIdFromPK(event.PK) || eventId
-        } as EventLoaderData), {
-            headers: headers(),
-        });
+        } as EventLoaderData;
 
     } catch (error) {
         console.error("Event loader error:", error);
@@ -248,36 +245,52 @@ export default function EventPage() {
 
     return (
         <div className="flex flex-col min-h-screen">
-            <Header />
+            
             <main className={`flex-grow ${patterns.bgSecondary}`}>
                 <div className={patterns.container}>
                     <div className="py-8">
                         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                             <div className="lg:col-span-2">
-                                <EventDetails event={event} />
-                                
-                                {isHost && (
-                                    <div className="mt-6 flex gap-4">
-                                        <Button variant="secondary" as="a" href={`/event/${eventId}/invite`}>
-                                            Invite Guests
-                                        </Button>
-                                        <Button variant="outline" as="a" href={`/event/${eventId}/edit`}>
-                                            Edit Event
-                                        </Button>
-                                    </div>
-                                )}
+                                <EventDetails event={event} isHost={isHost} />
                                 
                                 <GuestList guests={guests} className="mt-8" />
                             </div>
                             
                             <div>
-                                <RsvpForm eventId={eventId} />
+                                {isHost && (
+                                    <div id="invite-guests" className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+                                        <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-gray-100">Invite Guests</h2>
+                                        <Form method="post" className="space-y-4">
+                                            <div>
+                                                <label htmlFor="guestEmails" className="flex flex-col text-sm font-medium text-gray-900 dark:text-gray-100 mb-1">
+                                                    <span>Guest Emails</span>
+                                                    <span className="text-xs font-normal text-gray-500 dark:text-gray-400">Enter one email address per line</span>
+                                                </label>
+                                                <textarea
+                                                    id="guestEmails"
+                                                    name="guestEmails"
+                                                    rows={4}
+                                                    required
+                                                    placeholder={`example1@example.com\nexample2@example.com`}
+                                                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-gray-100"
+                                                ></textarea>
+                                                <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                                                    Enter each guest's email address on a new line.
+                                                </p>
+                                            </div>
+                                            
+                                            <Button type="submit" className="w-full">
+                                                Send Invitations
+                                            </Button>
+                                        </Form>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </div>
                 </div>
             </main>
-            <Footer />
+            
         </div>
     );
 }

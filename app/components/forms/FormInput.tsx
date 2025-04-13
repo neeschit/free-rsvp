@@ -1,14 +1,7 @@
 import type { InputHTMLAttributes } from 'react';
 import * as patterns from '~/styles/tailwind-patterns';
 import { Label, ErrorText, HelperText } from '~/components/ui/Typography';
-
-type FormInputProps = {
-  label: string;
-  id: string;
-  error?: string;
-  helperText?: string;
-  required?: boolean;
-} & InputHTMLAttributes<HTMLInputElement>;
+import type { BaseFormInputProps } from './types';
 
 export function FormInput({
   label,
@@ -19,7 +12,7 @@ export function FormInput({
   placeholder,
   className = '',
   ...props
-}: FormInputProps) {
+}: BaseFormInputProps) {
   const inputClasses = error
     ? `${patterns.input} border-red-500 dark:border-red-500 focus:ring-red-500 dark:focus:ring-red-400`
     : patterns.input;

@@ -8,11 +8,13 @@ import { getUserId } from "~/model/userId.server";
 import { createEventPK, createUserPK, createMetadataSK, createEventSK } from "~/model/event";
 import { getEventId } from "~/model/eventId.server";
 import { FormInput } from "~/components/forms/FormInput";
+import { DateInput } from "~/components/forms/DateInput";
 import { Button } from "~/components/ui/Button";
 import { Card } from "~/components/ui/Card";
 import { Heading, Text } from "~/components/ui/Typography";
 import { container, bgSecondary, textPrimary, formSection } from "~/styles/tailwind-patterns";
 import { useState } from "react";
+import { addDays, addWeeks, addMonths } from "~/utils/dateUtils";
 
 export const meta: MetaFunction = () => {
   return [
@@ -128,14 +130,25 @@ export default function CreateEvent() {
   const defaultTime = `${hours}:${minutes}`;
 
   const [timeValue, setTimeValue] = useState(defaultTime);
+  const [dateValue, setDateValue] = useState(defaultDate);
 
   const handleTimeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setTimeValue(e.target.value);
   };
 
+  const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setDateValue(e.target.value);
+  };
+
+  const setQuickDate = (date: string) => {
+    setDateValue(date);
+  };
+
   const setQuickTime = (time: string) => {
     setTimeValue(time);
   };
+
+  const formatDate = (date: Date): string => date.toISOString().split('T')[0];
 
   return (
     <main className={`flex-grow ${bgSecondary} ${textPrimary}`}>
@@ -158,14 +171,45 @@ export default function CreateEvent() {
                 <div>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="relative">
-                      <FormInput
+                      <DateInput
                         label="When is it?"
                         id="date"
-                        type="date"
-                        placeholder="Date"
-                        defaultValue={defaultDate}
+                        value={dateValue}
+                        onChange={setDateValue}
                         required
                       />
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        <button 
+                          type="button"
+                          className="text-xs px-3 py-1.5 bg-blue-100 hover:bg-blue-200 dark:bg-blue-900/70 dark:hover:bg-blue-800 rounded-md transition border border-blue-200 dark:border-blue-800 font-medium cursor-pointer shadow-sm"
+                          onClick={() => {
+                            const currentDate = new Date(dateValue + 'T00:00:00');
+                            setQuickDate(formatDate(addDays(currentDate, 1)));
+                          }}
+                        >
+                          +1 day
+                        </button>
+                        <button 
+                          type="button"
+                          className="text-xs px-3 py-1.5 bg-blue-100 hover:bg-blue-200 dark:bg-blue-900/70 dark:hover:bg-blue-800 rounded-md transition border border-blue-200 dark:border-blue-800 font-medium cursor-pointer shadow-sm"
+                          onClick={() => {
+                            const currentDate = new Date(dateValue + 'T00:00:00');
+                            setQuickDate(formatDate(addWeeks(currentDate, 1)));
+                          }}
+                        >
+                          +1 week
+                        </button>
+                        <button 
+                          type="button"
+                          className="text-xs px-3 py-1.5 bg-blue-100 hover:bg-blue-200 dark:bg-blue-900/70 dark:hover:bg-blue-800 rounded-md transition border border-blue-200 dark:border-blue-800 font-medium cursor-pointer shadow-sm"
+                          onClick={() => {
+                            const currentDate = new Date(dateValue + 'T00:00:00');
+                            setQuickDate(formatDate(addMonths(currentDate, 1)));
+                          }}
+                        >
+                          +1 month
+                        </button>
+                      </div>
                     </div>
                     
                     <div className="relative">
@@ -178,7 +222,7 @@ export default function CreateEvent() {
                         onChange={handleTimeChange}
                         required
                       />
-                      <div className="mt-2 flex space-x-2">
+                      <div className="mt-2 flex flex-wrap gap-2">
                         <button 
                           type="button"
                           className="text-xs px-3 py-1.5 bg-blue-100 hover:bg-blue-200 dark:bg-blue-900/70 dark:hover:bg-blue-800 rounded-md transition border border-blue-200 dark:border-blue-800 font-medium cursor-pointer shadow-sm"
@@ -189,9 +233,23 @@ export default function CreateEvent() {
                         <button 
                           type="button"
                           className="text-xs px-3 py-1.5 bg-blue-100 hover:bg-blue-200 dark:bg-blue-900/70 dark:hover:bg-blue-800 rounded-md transition border border-blue-200 dark:border-blue-800 font-medium cursor-pointer shadow-sm"
-                          onClick={() => setQuickTime('14:00')}
+                          onClick={() => setQuickTime('12:00')}
                         >
-                          2 PM
+                          12 PM
+                        </button>
+                        <button 
+                          type="button"
+                          className="text-xs px-3 py-1.5 bg-blue-100 hover:bg-blue-200 dark:bg-blue-900/70 dark:hover:bg-blue-800 rounded-md transition border border-blue-200 dark:border-blue-800 font-medium cursor-pointer shadow-sm"
+                          onClick={() => setQuickTime('15:00')}
+                        >
+                          3 PM
+                        </button>
+                        <button 
+                          type="button"
+                          className="text-xs px-3 py-1.5 bg-blue-100 hover:bg-blue-200 dark:bg-blue-900/70 dark:hover:bg-blue-800 rounded-md transition border border-blue-200 dark:border-blue-800 font-medium cursor-pointer shadow-sm"
+                          onClick={() => setQuickTime('18:00')}
+                        >
+                          6 PM
                         </button>
                       </div>
                     </div>
@@ -202,7 +260,7 @@ export default function CreateEvent() {
                   <FormInput
                     label="Where should everyone meet?"
                     id="location"
-                    placeholder="Danehy Park"
+                    placeholder="The Park"
                     required
                   />
                 </div>
