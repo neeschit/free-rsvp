@@ -6,15 +6,13 @@
 
 import './styles.css';
 import { HydratedRouter } from "react-router/dom";
-import { startTransition, StrictMode } from "react";
+import { StrictMode } from "react";
 import { hydrateRoot } from "react-dom/client";
 
-// Using startTransition to prevent blocking UI during hydration
-startTransition(() => {
-  hydrateRoot(
-    document,
-    <StrictMode>
-      <HydratedRouter />
-    </StrictMode>
-  );
-});
+// Hydrate directly without startTransition to ensure consistent hydration
+hydrateRoot(
+  document,
+  <StrictMode>
+    <HydratedRouter />
+  </StrictMode>
+);

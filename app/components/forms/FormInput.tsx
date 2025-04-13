@@ -16,6 +16,7 @@ export function FormInput({
   error,
   helperText,
   required = false,
+  placeholder,
   className = '',
   ...props
 }: FormInputProps) {
@@ -23,15 +24,23 @@ export function FormInput({
     ? `${patterns.input} border-red-500 dark:border-red-500 focus:ring-red-500 dark:focus:ring-red-400`
     : patterns.input;
 
+  // If required and no label is provided, append * to placeholder
+  const displayPlaceholder = !label && required && placeholder 
+    ? `${placeholder} *` 
+    : placeholder;
+
   return (
     <div className="space-y-1">
-      <Label htmlFor={id}>
-        {label} {required && <span className="text-red-500">*</span>}
-      </Label>
+      {label && (
+        <Label htmlFor={id}>
+          {label} {required && <span className="text-red-500">*</span>}
+        </Label>
+      )}
       <input
         id={id}
         name={id}
         required={required}
+        placeholder={displayPlaceholder}
         className={`${inputClasses} ${className}`}
         aria-invalid={error ? 'true' : 'false'}
         aria-describedby={error ? `${id}-error` : helperText ? `${id}-description` : undefined}

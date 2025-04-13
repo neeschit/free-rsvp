@@ -7,8 +7,6 @@ import type { LoaderFunctionArgs, MetaFunction } from "react-router";
 import type { UserEventBase, UserRsvpBase } from "~/model/event";
 import { createUserPK, extractEventIdFromSK, extractRsvpEventIdFromSK } from "~/model/event";
 import { getUserId } from "~/model/userId.server";
-import { Header } from "~/components/Header";
-import { Footer } from "~/components/Footer";
 import { Button } from "~/components/ui/Button";
 import { Heading, Text } from "~/components/ui/Typography";
 import * as patterns from "~/styles/tailwind-patterns";
@@ -51,20 +49,30 @@ export async function loader({ request }: LoaderFunctionArgs) {
       }
     }));
     
-    return new Response(JSON.stringify({
-      hostedEvents: hostedEventsResult.Items || [],
-      rsvps: rsvpResult.Items || []
-    } as MyEventsLoaderData), {
-      headers: headers()
+    const data: MyEventsLoaderData = {
+      hostedEvents: (hostedEventsResult.Items || []) as UserEventBase[],
+      rsvps: (rsvpResult.Items || []) as UserRsvpBase[]
+    };
+    
+    return new Response(JSON.stringify(data), {
+      headers: {
+        'Content-Type': 'application/json',
+        ...headers()
+      }
     });
   } catch (error) {
     console.error("Error loading user events:", error);
-    return new Response(JSON.stringify({
+    const data: MyEventsLoaderData = {
       hostedEvents: [],
       rsvps: []
-    } as MyEventsLoaderData), {
+    };
+    
+    return new Response(JSON.stringify(data), {
       status: 500,
-      headers: headers()
+      headers: {
+        'Content-Type': 'application/json',
+        ...headers()
+      }
     });
   }
 }
@@ -82,7 +90,6 @@ export default function MyEventsPage() {
   
   return (
     <div className="flex flex-col min-h-screen">
-      <Header />
       <main className={`flex-grow ${patterns.bgSecondary}`}>
         <div className={patterns.container}>
           <div className="py-8">
@@ -159,9 +166,8 @@ export default function MyEventsPage() {
                                     variant="outline" 
                                     as="a" 
                                     href={`/event/${eventId}`}
-                                    className="text-sm"
                                   >
-                                    View Details
+                                    View Event
                                   </Button>
                                 </div>
                               );
@@ -169,12 +175,11 @@ export default function MyEventsPage() {
                           </div>
                         </div>
                       )}
-                      
                       {/* Maybe */}
                       {maybeRsvps.length > 0 && (
                         <div className="bg-white p-6 rounded-lg shadow-sm dark:bg-gray-800">
                           <Heading level={3} className="text-yellow-600 dark:text-yellow-400 mb-4">
-                            Events I Might Attend
+                            Events I'm Maybe Attending
                           </Heading>
                           <div className="space-y-4">
                             {maybeRsvps.map(rsvp => {
@@ -187,9 +192,8 @@ export default function MyEventsPage() {
                                     variant="outline" 
                                     as="a" 
                                     href={`/event/${eventId}`}
-                                    className="text-sm"
                                   >
-                                    View Details
+                                    View Event
                                   </Button>
                                 </div>
                               );
@@ -197,12 +201,11 @@ export default function MyEventsPage() {
                           </div>
                         </div>
                       )}
-                      
                       {/* Not Going */}
                       {notGoingRsvps.length > 0 && (
                         <div className="bg-white p-6 rounded-lg shadow-sm dark:bg-gray-800">
                           <Heading level={3} className="text-red-600 dark:text-red-400 mb-4">
-                            Events I'm Missing
+                            Events I'm Not Attending
                           </Heading>
                           <div className="space-y-4">
                             {notGoingRsvps.map(rsvp => {
@@ -215,9 +218,8 @@ export default function MyEventsPage() {
                                     variant="outline" 
                                     as="a" 
                                     href={`/event/${eventId}`}
-                                    className="text-sm"
                                   >
-                                    View Details
+                                    View Event
                                   </Button>
                                 </div>
                               );
@@ -230,23 +232,21 @@ export default function MyEventsPage() {
                 </div>
               </div>
             ) : (
-              <div className="bg-white p-8 rounded-lg shadow-sm text-center dark:bg-gray-800 max-w-2xl mx-auto">
-                <Heading level={2} className="mb-4">Welcome to Kiddobash!</Heading>
-                <Text className="mb-6">You haven't created any events or RSVPed to any invitations yet.</Text>
+              <div className="bg-white p-6 rounded-lg shadow-sm dark:bg-gray-800">
+                <Text>You haven't created any events or RSVPed to any events yet.</Text>
                 <Button 
                   variant="primary" 
                   as="a" 
                   href="/create-event" 
-                  className="mx-auto"
+                  className="mt-4"
                 >
-                  Create Your First Event
+                  Create an Event
                 </Button>
               </div>
             )}
           </div>
         </div>
       </main>
-      <Footer />
     </div>
   );
-} 
+}

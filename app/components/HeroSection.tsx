@@ -15,7 +15,7 @@ export function HeroSection() {
             className="text-lg text-gray-600 dark:text-gray-300"
             style={{ minHeight: '3rem' }}
           >
-            Plan your child's birthday party easily with Kiddobash. Create and send beautiful invites, track RSVPs simply, and coordinate everything for a stress-free celebration.
+            Skip the complex setups of Evite or Punchbowl. Kiddobash offers beautiful kids' party invites and completely free RSVP tracking for a stress-free celebration.
           </p>
           <div className="flex gap-4 pt-4">
             <Link 

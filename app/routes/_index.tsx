@@ -1,17 +1,10 @@
 import type { MetaFunction } from "react-router";
-import { headers } from "~/headers";
-import { Suspense, lazy } from "react";
+import { headers, headers as headerUtils } from "~/headers";
 
-// Immediate load for critical hero section
+// Import all components directly
 import { HeroSection } from "~/components/HeroSection";
-
-// Lazy load lower-priority components
-const FeatureGrid = lazy(() => import("~/components/FeatureGrid").then(module => ({ 
-  default: module.FeatureGrid 
-})));
-const AboutBlock = lazy(() => import("~/components/AboutBlock").then(module => ({ 
-  default: module.AboutBlock 
-})));
+import { FeatureGrid } from "~/components/FeatureGrid";
+import { AboutBlock } from "~/components/AboutBlock";
 
 export const meta: MetaFunction = () => {
   return [
@@ -30,23 +23,18 @@ export default function Index() {
     return (
         <>
             <main className="flex flex-col min-h-screen">
-                {/* High priority content - render immediately */}
+                {/* Render all components directly without Suspense */}
                 <div className="contents">
                     <HeroSection />
                 </div>
                 
-                {/* Lower priority content - can be loaded after initial paint */}
-                <Suspense fallback={<div className="h-96"></div>}>
-                    <div style={{ contentVisibility: 'auto' }}>
-                        <FeatureGrid />
-                    </div>
-                </Suspense>
+                <div>
+                    <FeatureGrid />
+                </div>
                 
-                <Suspense fallback={<div className="h-48"></div>}>
-                    <div style={{ contentVisibility: 'auto' }}>
-                        <AboutBlock />
-                    </div>
-                </Suspense>
+                <div>
+                    <AboutBlock />
+                </div>
             </main>
         </>
     );

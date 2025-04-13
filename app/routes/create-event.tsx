@@ -1,5 +1,5 @@
 import { Resource } from "sst";
-import { redirect, Form } from "react-router";
+import { redirect, Form, useSubmit } from "react-router";
 import { PutCommand, TransactWriteCommand } from "@aws-sdk/lib-dynamodb";
 import type { ActionFunctionArgs, MetaFunction } from "react-router";
 import { headers } from "~/headers";
@@ -10,10 +10,9 @@ import { getEventId } from "~/model/eventId.server";
 import { FormInput } from "~/components/forms/FormInput";
 import { Button } from "~/components/ui/Button";
 import { Card } from "~/components/ui/Card";
-import { Header } from "~/components/Header";
-import { Footer } from "~/components/Footer";
 import { Heading, Text } from "~/components/ui/Typography";
-import * as patterns from "~/styles/tailwind-patterns";
+import { container, bgSecondary, textPrimary, formSection } from "~/styles/tailwind-patterns";
+import { useState } from "react";
 
 export const meta: MetaFunction = () => {
   return [
@@ -119,86 +118,121 @@ export async function loader() {
 }
 
 export default function CreateEvent() {
+  // Get current date in YYYY-MM-DD format for default date value
+  const today = new Date();
+  const defaultDate = today.toISOString().split('T')[0];
+  
+  // Get current time in HH:MM format for default time value
+  const hours = today.getHours().toString().padStart(2, '0');
+  const minutes = today.getMinutes().toString().padStart(2, '0');
+  const defaultTime = `${hours}:${minutes}`;
+
+  const [timeValue, setTimeValue] = useState(defaultTime);
+
+  const handleTimeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setTimeValue(e.target.value);
+  };
+
+  const setQuickTime = (time: string) => {
+    setTimeValue(time);
+  };
+
   return (
-    <div className="flex flex-col min-h-screen">
-      <main className={`flex-grow ${patterns.bgSecondary} ${patterns.textPrimary}`}>
-        <div className={patterns.container}>
-          <div className="py-8">
-            <Heading level={1} className="mb-6">Create New Event</Heading>
-            
-            <Card>
-              <Form method="post" className={patterns.formSection}>
-                <div className="space-y-4">
-                  <Heading level={2}>Event Details</Heading>
-                  
+    <main className={`flex-grow ${bgSecondary} ${textPrimary}`}>
+      <div className={container}>
+        <div className="py-8 text-center">
+          <Heading level={1} className="mb-8">Let's get this event planned <span className="text-4xl">🎉</span></Heading>
+          
+          <Card className="mt-8 max-w-xl mx-auto">
+            <Form method="post" className={formSection}>
+              <div className="space-y-6 text-left">
+                <div>
                   <FormInput
-                    label="Event Name"
+                    label="What are you hosting?"
                     id="eventName"
-                    placeholder="e.g., Sophia's 5th Birthday Party"
+                    placeholder="Jackson's 5th Birthday, Soccer Meetup..."
                     required
                   />
-                  
-                  <div className={patterns.gridCols2}>
-                    <div>
+                </div>
+                
+                <div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="relative">
                       <FormInput
-                        label="Date"
+                        label="When is it?"
                         id="date"
                         type="date"
+                        placeholder="Date"
+                        defaultValue={defaultDate}
                         required
                       />
                     </div>
                     
-                    <div>
+                    <div className="relative">
                       <FormInput
                         label="Time"
                         id="time"
                         type="time"
+                        placeholder="Time"
+                        value={timeValue}
+                        onChange={handleTimeChange}
                         required
                       />
+                      <div className="mt-2 flex space-x-2">
+                        <button 
+                          type="button"
+                          className="text-xs px-3 py-1.5 bg-blue-100 hover:bg-blue-200 dark:bg-blue-900/70 dark:hover:bg-blue-800 rounded-md transition border border-blue-200 dark:border-blue-800 font-medium cursor-pointer shadow-sm"
+                          onClick={() => setQuickTime('09:00')}
+                        >
+                          9 AM
+                        </button>
+                        <button 
+                          type="button"
+                          className="text-xs px-3 py-1.5 bg-blue-100 hover:bg-blue-200 dark:bg-blue-900/70 dark:hover:bg-blue-800 rounded-md transition border border-blue-200 dark:border-blue-800 font-medium cursor-pointer shadow-sm"
+                          onClick={() => setQuickTime('14:00')}
+                        >
+                          2 PM
+                        </button>
+                      </div>
                     </div>
                   </div>
-                  
+                </div>
+                
+                <div>
                   <FormInput
-                    label="Location"
+                    label="Where should everyone meet?"
                     id="location"
-                    placeholder="e.g., Community Park, 123 Main St"
+                    placeholder="Danehy Park"
                     required
-                  />
-                  
-                  <FormInput
-                    label="Theme (Optional)"
-                    id="theme"
-                    placeholder="e.g., Superheroes, Princess, Dinosaurs"
                   />
                 </div>
                 
-                <div className={`pt-6 ${patterns.borderTop} space-y-4 mt-6`}>
-                  <Heading level={2}>Host Information</Heading>
-                  
+                <div>
                   <FormInput
-                    label="Your Name"
+                    label="Who's the host?"
                     id="hostName"
-                    placeholder="e.g., Alex Parent"
+                    placeholder="Alex Parent"
                     required
                   />
-                  
+                </div>
+                
+                <div>
                   <FormInput
-                    label="Email (Optional)"
+                    label=""
                     id="email"
                     type="email"
-                    placeholder="your.email@example.com"
-                    helperText="Used for notifications and reminders only"
+                    placeholder="alex@example.com"
                   />
                 </div>
-                
-                <Button variant="primary" type="submit" fullWidth className="mt-6">
-                  Create Event
-                </Button>
-              </Form>
-            </Card>
-          </div>
+              </div>
+              
+              <Button variant="primary" type="submit" fullWidth className="mt-8">
+                Start Planning
+              </Button>
+            </Form>
+          </Card>
         </div>
-      </main>
-    </div>
+      </div>
+    </main>
   );
 } 
