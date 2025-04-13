@@ -18,6 +18,7 @@ import { RsvpForm } from "~/components/events/RsvpForm";
 import { Card } from "~/components/ui/Card";
 import { Heading, Text } from "~/components/ui/Typography";
 import * as patterns from "~/styles/tailwind-patterns";
+import { GuestList } from "~/components/events/GuestList";
 
 export const meta: MetaFunction = () => {
     return [
@@ -139,6 +140,7 @@ type RsvpLoaderData = {
     userRsvp?: RsvpBase;
     eventName: string;
     eventDate: string;
+    guests?: RsvpBase[];
 };
 
 export async function loader({
@@ -218,8 +220,19 @@ export async function loader({
             userRsvp = rsvpResult.Items?.[0] as RsvpBase | undefined;
         }
 
-        // If it's not a public event, check for invite or prior RSVP (for authorization)
-        if (!event.isPublic) {
+        // Fetch guests if the event is public
+        let guests: RsvpBase[] | undefined;
+        if (event.isPublic) {
+            const guestListResult = await client.send(new QueryCommand({
+                TableName: Resource.Kiddobash.name,
+                KeyConditionExpression: "PK = :pk AND begins_with(SK, :skPrefix)",
+                ExpressionAttributeValues: {
+                    ":pk": event.PK,
+                    ":skPrefix": "RSVP#" 
+                }
+            }));
+            guests = guestListResult.Items as RsvpBase[] || [];
+        } else { // If it's not a public event, check for invite or prior RSVP (for authorization)
             // Only check user-specific permissions if we have a userId
             if (userId) {
                 // RSVP check (using the already fetched userRsvp)
@@ -264,7 +277,8 @@ export async function loader({
             eventId: extractEventIdFromPK(event.PK) || eventId,
             userRsvp, // Now always included if userId existed
             eventName: event.EventName,
-            eventDate: event.Date
+            eventDate: event.Date,
+            guests 
         } as RsvpLoaderData;
 
     } catch (error) {
@@ -293,7 +307,7 @@ export default function RsvpPage() {
         );
     }
 
-    const { event, eventId, userRsvp, eventName, eventDate } = data;
+    const { event, eventId, userRsvp, eventName, eventDate, guests } = data;
 
     return (
         <div className="flex flex-col min-h-screen">
@@ -357,6 +371,17 @@ export default function RsvpPage() {
                                 <Text className="text-center text-sm text-gray-600 dark:text-gray-400 mt-1">
                                     You can update your details below.
                                 </Text>
+                            </Card>
+                        )}
+
+                        {/* Conditionally render GuestList for public events */}
+                        {event.isPublic && guests && guests.length > 0 && (
+                            <GuestList guests={guests} className="mb-6" />
+                        )}
+                        {/* Optionally show a message if public but no guests yet */}
+                        {event.isPublic && guests && guests.length === 0 && (
+                            <Card className="mb-6">
+                                <Text className="text-center text-gray-600 dark:text-gray-400">No guests have RSVP'd yet.</Text>
                             </Card>
                         )}
 

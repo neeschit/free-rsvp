@@ -15,6 +15,7 @@
     "force-reset-db:prod": "node hacks/force-reset-table.js production"
   },
   "dependencies": {
+    "@heroicons/react": "^2.2.0",
     "@react-router/fs-routes": "^7.4.1",
     "@react-router/node": "^7.4.1",
     "@react-router/serve": "^7.4.1",
