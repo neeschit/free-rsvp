@@ -14,7 +14,7 @@ export function Footer() {
               />
               <span className="font-bold text-xl text-indigo-600 dark:text-indigo-400">Kiddobash</span>
             </div>
-            <p className="text-sm text-gray-500 dark:text-gray-400">Making event planning simple for families.</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">Making event planning simple.</p>
           </div>
           
           <div className="flex flex-col items-center md:items-end">

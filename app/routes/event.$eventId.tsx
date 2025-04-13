@@ -283,7 +283,7 @@ export default function EventPage() {
                                                 </Button>
                                             </Form>
                                         </div>
-                                    </GatedFeature>
+                                  z  </GatedFeature>
                                 )}
                             </div>
                         </div>
