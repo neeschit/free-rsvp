@@ -8,3 +8,12 @@ export function headers() {
         "Referrer-Policy": "strict-origin-when-cross-origin"
     };
 }
+
+// New function to generate no-cache headers
+export function noCacheHeaders() {
+    const baseHeaders = headers(); // Get base security headers
+    return {
+        ...baseHeaders,
+        "Cache-Control": "no-store, no-cache, must-revalidate",
+    };
+}

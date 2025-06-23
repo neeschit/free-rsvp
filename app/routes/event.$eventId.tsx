@@ -1,10 +1,10 @@
 import { Resource } from "sst";
 import { QueryCommand, TransactWriteCommand } from "@aws-sdk/lib-dynamodb";
 import { redirect, useLoaderData, Form } from "react-router";
-import { headers } from "~/headers";
+import { noCacheHeaders } from "~/headers";
 import { getClient } from "~/model/client";
 import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from "react-router";
-import type { EventBase, RsvpBase } from "~/model/event";
+import type { EventBase, RsvpBase, InviteMetadata } from "~/model/event";
 import { 
     createEventPK, 
     createMetadataSK, 
@@ -17,6 +17,7 @@ import { getUserId } from "~/model/userId.server";
 import { Button } from "~/components/ui/Button";
 import { EventDetails } from "~/components/events/EventDetails";
 import { GuestList } from "~/components/events/GuestList";
+import { InviteList } from "~/components/events/InviteList";
 import { GatedFeature } from "~/components/ui/GatedFeature";
 import * as patterns from "~/styles/tailwind-patterns";
 
@@ -26,6 +27,8 @@ export const meta: MetaFunction = () => {
         { name: "description", content: "View event details and RSVP" },
     ];
 };
+
+export { noCacheHeaders as headers };
 
 export async function action({
     request,
@@ -126,6 +129,7 @@ type EventLoaderData = {
     guests: RsvpBase[];
     isHost: boolean;
     eventId: string;
+    invites: InviteMetadata[];
 };
 
 export async function loader({
@@ -133,11 +137,13 @@ export async function loader({
     params,
 }: LoaderFunctionArgs) {
     const client = getClient();
+    const headersToUse = noCacheHeaders();
 
     const eventId = params.eventId;
     if (!eventId) {
         return redirect('/', {
-            status: 403
+            status: 403,
+            headers: headersToUse 
         });
     }
 
@@ -184,23 +190,24 @@ export async function loader({
         // Check if an event was found AND if the found event has essential data
         if (!event || !event.EventName || !event.Date || !event.Time || !event.Location) {
             console.log("No valid event found or essential data missing", event ? JSON.stringify(event) : "No event object");
-            // Return 404 if no event found or essential data is missing
+            // Return 404 with headers
             throw new Response(null, { 
                 status: 404,
                 statusText: "Event not found!",
-                headers: headers(),
+                headers: headersToUse,
             });
         }
 
         // Check if user is the host
-        const isHost = userId && event.HostId === createUserPK(userId);
+        const isHost = Boolean(userId && event.HostId === createUserPK(userId));
         
         // If not the host and not already on the RSVP page, redirect to it
         if (!isHost) {
             // Check if we're on the main event page (not already on rsvp)
             const url = new URL(request.url);
             if (!url.pathname.endsWith('/rsvp')) {
-                return redirect(`/rsvp/${eventId}`);
+                // Add headers to redirect
+                return redirect(`/rsvp/${eventId}`, { headers: headersToUse });
             }
         }
 
@@ -216,20 +223,46 @@ export async function loader({
 
         const guests = (guestsResult.Items || []) as RsvpBase[];
 
-        // We got all the data we need, return it
-        return {
+        // Query for invites
+        const invitesResult = await client.send(new QueryCommand({
+            TableName: Resource.Kiddobash.name,
+            KeyConditionExpression: "PK = :pk AND begins_with(SK, :skPrefix)",
+            ExpressionAttributeValues: {
+                ":pk": event.PK,
+                ":skPrefix": "INVITE_METADATA#"
+            }
+        }));
+
+        const invites = (invitesResult.Items || []) as InviteMetadata[];
+
+        const data: EventLoaderData = {
             event,
             guests,
             isHost,
-            eventId: extractEventIdFromPK(event.PK) || eventId
-        } as EventLoaderData;
+            eventId: extractEventIdFromPK(event.PK) || eventId,
+            invites
+        };
+
+        // Return Response manually with stringified data and headers
+        return new Response(JSON.stringify(data), {
+             headers: { ...headersToUse, 'Content-Type': 'application/json' },
+        });
 
     } catch (error) {
+        // Simplified error handling: Only add headers to new Response objects
+        if (error instanceof Response) {
+            // Re-throw existing Response objects without modification here
+            // If they need no-cache headers, they should be thrown with them initially
+            throw error; 
+        }
+
+        // Handle other errors
         console.error("Event loader error:", error);
+        // Throw new Response with no-cache headers
         throw new Response(null, { 
             status: 500,
             statusText: "Server Error",
-            headers: headers(),
+            headers: headersToUse,
         });
     }
 }
@@ -239,7 +272,7 @@ export default function EventPage() {
     const data = useLoaderData<EventLoaderData>();
 
     // Destructure the data for easier access
-    const { event, guests, isHost, eventId } = data;
+    const { event, guests, isHost, eventId, invites } = data;
 
     return (
         <div className="flex flex-col min-h-screen">
@@ -250,6 +283,10 @@ export default function EventPage() {
                         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                             <div className="lg:col-span-2">
                                 <EventDetails event={event} isHost={isHost} />
+                                
+                                {isHost && (
+                                    <InviteList invites={invites} className="mt-8" />
+                                )}
                                 
                                 <GuestList guests={guests} className="mt-8" />
                             </div>

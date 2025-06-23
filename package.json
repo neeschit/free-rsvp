@@ -12,9 +12,11 @@
     "reset-db:dev": "node hacks/batch-reset-tables.js",
     "reset-db:prod": "node hacks/batch-reset-tables.js production",
     "force-reset-db:dev": "node hacks/force-reset-table.js",
-    "force-reset-db:prod": "node hacks/force-reset-table.js production"
+    "force-reset-db:prod": "node hacks/force-reset-table.js production",
+    "unlock": "sst unlock"
   },
   "dependencies": {
+    "@aws-sdk/client-sesv2": "^3.830.0",
     "@heroicons/react": "^2.2.0",
     "@react-router/fs-routes": "^7.4.1",
     "@react-router/node": "^7.4.1",

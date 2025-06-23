@@ -1,5 +1,5 @@
 import type { MetaFunction } from "react-router";
-import { headers, headers as headerUtils } from "~/headers";
+import { headers, } from "~/headers";
 
 // Import all components directly
 import { HeroSection } from "~/components/HeroSection";
