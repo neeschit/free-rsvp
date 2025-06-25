@@ -13,6 +13,15 @@ declare module "sst" {
       "name": string
       "type": "sst.aws.Dynamo"
     }
+    "KiddobashEmail": {
+      "configSet": string
+      "sender": string
+      "type": "sst.aws.Email"
+    }
+    "KiddobashEmailReceiver": {
+      "name": string
+      "type": "sst.aws.Bucket"
+    }
     "KiddobashWeb": {
       "type": "sst.aws.React"
       "url": string

@@ -18,6 +18,9 @@ export default $config({
                 CreatedAt: "string",
                 RSVPStatus: "string",
                 Date: "string",
+                InviteId: "string",
+                SentAt: "string",
+                RecipientEmail: "string",
             },
             primaryIndex: { hashKey: "PK", rangeKey: "SK" },
             globalIndexes: {
@@ -31,14 +34,30 @@ export default $config({
                     rangeKey: "Date",
                     projection: "all",
                 },
+                InviteIndex: {
+                    hashKey: "InviteId",
+                    rangeKey: "SentAt",
+                    projection: "all",
+                },
+                RecipientIndex: {
+                    hashKey: "RecipientEmail",
+                    rangeKey: "SentAt",
+                    projection: "all",
+                },
             },
         });
+
+        // S3 bucket for storing received emails
+        const emailBucket = new sst.aws.Bucket("KiddobashEmailReceiver");
+
+        // Email component for sending invites - reference existing identity
+        const email = sst.aws.Email.get("KiddobashEmail", "noreply@kiddobash.com");
 
         // Define secrets
         const gtagIdSecret = new sst.Secret("GTAG_ID");
 
         new sst.aws.React("KiddobashWeb", {
-            link: [table, gtagIdSecret],
+            link: [table, gtagIdSecret, email, emailBucket],
             environment: {
                 NODE_ENV: process.env.NODE_ENV || "production",
                 GTAG_ID: gtagIdSecret.value,

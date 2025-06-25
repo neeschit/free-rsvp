@@ -20,12 +20,7 @@ export default function handleRequest(
   reactRouterContext: EntryContext
 ) {
   // Always set the Date header with the current time
-  responseHeaders.set("Date", new Date().toUTCString());
-  
-  // Ensure Cache-Control header is present
-  if (!responseHeaders.has("Cache-Control")) {
-    responseHeaders.set("Cache-Control", "public,max-age=0,s-maxage=300,stale-while-revalidate=600");
-  }
+  responseHeaders.set("Date", new Date().toUTCString())
   
   // Remove Age header if present (CloudFront might add it)
   if (responseHeaders.has("Age")) {

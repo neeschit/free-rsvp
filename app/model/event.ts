@@ -22,6 +22,23 @@ export type InvitationBase = {
     UpdatedAt: string;
 }
 
+// New type for tracking email invites with unique IDs
+export type InviteMetadata = {
+    PK: string; // EVENT#{eventId}
+    SK: string; // INVITE_METADATA#{inviteId}
+    InviteId: string; // Unique identifier for tracking
+    RecipientEmail: string;
+    RecipientName?: string;
+    SentAt: string;
+    EventId: string;
+    HostId: string;
+    CreatedAt: string;
+    // Tracking fields
+    Status?: "Sent" | "Opened" | "Clicked";
+    OpenedAt?: string;
+    ClickedAt?: string;
+}
+
 export type RsvpBase = {
     PK: string; // EVENT#{eventId}
     SK: string; // RSVP#{userId}#{timestamp}
@@ -74,6 +91,10 @@ export function createInviteSK(invitationId: string): string {
     return `INVITE#${invitationId}`;
 }
 
+export function createInviteMetadataSK(inviteId: string): string {
+    return `INVITE_METADATA#${inviteId}`;
+}
+
 export function createRsvpSK(userId: string, timestamp?: number): string {
     const ts = timestamp || Date.now();
     return `RSVP#${userId}#${ts}`;
@@ -94,6 +115,11 @@ export function createEventSK(eventId: string): string {
 
 export function createUserRsvpSK(eventId: string): string {
     return `RSVP#${eventId}`;
+}
+
+// Helper function to generate unique invite ID
+export function generateInviteId(): string {
+    return `inv_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 }
 
 // Helper functions to extract IDs from keys
@@ -119,5 +145,10 @@ export function extractEventIdFromSK(sk: string): string | null {
 
 export function extractRsvpEventIdFromSK(sk: string): string | null {
     const match = sk.match(/^RSVP#(.+)$/);
+    return match ? match[1] : null;
+}
+
+export function extractInviteIdFromSK(sk: string): string | null {
+    const match = sk.match(/^INVITE_METADATA#(.+)$/);
     return match ? match[1] : null;
 }

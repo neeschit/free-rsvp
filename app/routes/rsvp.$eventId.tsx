@@ -1,7 +1,7 @@
 import { Resource } from "sst";
 import { QueryCommand, TransactWriteCommand } from "@aws-sdk/lib-dynamodb";
 import { redirect, useLoaderData, Form } from "react-router";
-import { headers } from "~/headers";
+import { noCacheHeaders } from "~/headers";
 import { getClient } from "~/model/client";
 import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from "react-router";
 import type { EventBase, RsvpBase } from "~/model/event";
@@ -20,6 +20,8 @@ import { Heading, Text } from "~/components/ui/Typography";
 import * as patterns from "~/styles/tailwind-patterns";
 import { GuestList } from "~/components/events/GuestList";
 
+export { noCacheHeaders as headers };
+
 export const meta: MetaFunction = () => {
     return [
         { title: "RSVP - Kiddobash" },
@@ -33,6 +35,7 @@ export async function action({
 }: ActionFunctionArgs) {
     const formData = await request.formData();
     const client = getClient();
+    const headersToUse = noCacheHeaders();
 
     const userId = getUserId(request);
 
@@ -117,8 +120,8 @@ export async function action({
             ]
         }));
 
-        // Redirect back to the RSVP page itself to show the updated status
-        return redirect(`/rsvp/${eventId}`);
+        // Redirect back to the RSVP page itself to show the updated status with headers
+        return redirect(`/rsvp/${eventId}`, { headers: headersToUse });
     } catch (e) {
         console.log(e);
         // Check if it's a DynamoDB ValidationException
@@ -130,6 +133,7 @@ export async function action({
         }
         throw new Response('unexpected_error', {
             status: 500,
+            headers: headersToUse
         });
     }
 }
@@ -148,11 +152,13 @@ export async function loader({
     params,
 }: LoaderFunctionArgs) {
     const client = getClient();
+    const headersToUse = noCacheHeaders();
 
     const eventId = params.eventId;
     if (!eventId) {
         return redirect('/', {
-            status: 403
+            status: 403,
+            headers: headersToUse
         });
     }
 
@@ -200,7 +206,7 @@ export async function loader({
             throw new Response(null, { 
                 status: 404,
                 statusText: "Event not found!",
-                headers: headers(),
+                headers: headersToUse,
             });
         }
 
@@ -255,7 +261,8 @@ export async function loader({
                 if (!hasRsvp && !hasInvite) {
                     return redirect('/', {
                         status: 403,
-                        statusText: "Not authorized to view this event"
+                        statusText: "Not authorized to view this event",
+                        headers: headersToUse
                     });
                 }
                 */
@@ -266,27 +273,40 @@ export async function loader({
                 // For non-authenticated users trying to access a private event
                 return redirect('/', {
                     status: 403,
-                    statusText: "Sign in to view this private event"
+                    statusText: "Sign in to view this private event",
+                    headers: headersToUse
                 });
             }
         }
 
-        // Common return for public events or authorized private event access
-        return {
+        const data: RsvpLoaderData = {
             event,
             eventId: extractEventIdFromPK(event.PK) || eventId,
             userRsvp, // Now always included if userId existed
             eventName: event.EventName,
             eventDate: event.Date,
             guests 
-        } as RsvpLoaderData;
+        };
+
+        // Return Response manually with stringified data and headers
+        return new Response(JSON.stringify(data), {
+            headers: { ...headersToUse, 'Content-Type': 'application/json' },
+       });
 
     } catch (error) {
+         // Simplified error handling: Only add headers to new Response objects
+        if (error instanceof Response) {
+            // Re-throw existing Response objects without modification here
+            // If they need no-cache headers, they should be thrown with them initially
+            throw error; 
+        }
+
         console.error("RSVP loader error:", error);
+        // Add headers to error response
         throw new Response(null, { 
             status: 500,
             statusText: "Server Error",
-            headers: headers(),
+            headers: headersToUse, 
         });
     }
 }
