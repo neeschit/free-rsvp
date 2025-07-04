@@ -4,7 +4,8 @@ import { PutCommand, TransactWriteCommand } from "@aws-sdk/lib-dynamodb";
 import type { ActionFunctionArgs, MetaFunction } from "react-router";
 import { headers } from "~/headers";
 import { getClient } from "~/model/client";
-import { getUserId } from "~/model/userId.server";
+import { getUserId } from "~/utils/session.server";
+import { requireAuth } from "~/utils/requireAuth";
 import { createEventPK, createUserPK, createMetadataSK, createEventSK } from "~/model/event";
 import { getEventId } from "~/model/eventId.server";
 import { FormInput } from "~/components/forms/FormInput";
@@ -29,7 +30,11 @@ export async function action({
   const formData = await request.formData();
   const client = getClient();
 
-  const userId = getUserId(request);
+  const userId = await getUserId(request);
+  
+  if (!userId) {
+    throw new Response('Unauthorized', { status: 401 });
+  }
 
   const eventName = formData.get('eventName')?.toString();
   if (!eventName) {
@@ -114,11 +119,14 @@ export async function action({
   }
 }
 
-export async function loader() {
+async function createEventLoader() {
   return new Response(JSON.stringify({}), {
     headers: headers(),
   });
 }
+
+// Wrap the loader with authentication requirement
+export const loader = requireAuth(createEventLoader);
 
 export default function CreateEvent() {
   // Get current date in YYYY-MM-DD format for default date value

@@ -6,10 +6,11 @@ import { getClient } from "~/model/client";
 import type { LoaderFunctionArgs, MetaFunction } from "react-router";
 import type { UserEventBase, UserRsvpBase } from "~/model/event";
 import { createUserPK, extractEventIdFromSK, extractRsvpEventIdFromSK } from "~/model/event";
-import { getUserId } from "~/model/userId.server";
+import { getUserId } from "~/utils/session.server";
 import { Button } from "~/components/ui/Button";
 import { Heading, Text } from "~/components/ui/Typography";
 import * as patterns from "~/styles/tailwind-patterns";
+import { requireAuth } from "~/utils/requireAuth";
 
 export const meta: MetaFunction = () => {
   return [
@@ -23,9 +24,14 @@ type MyEventsLoaderData = {
   rsvps: UserRsvpBase[];
 };
 
-export async function loader({ request }: LoaderFunctionArgs) {
+async function myEventsLoader({ request }: LoaderFunctionArgs) {
   const client = getClient();
-  const userId = getUserId(request);
+  const userId = await getUserId(request);
+  
+  if (!userId) {
+    throw new Error("User not authenticated");
+  }
+  
   const userPK = createUserPK(userId);
   
   try {
@@ -76,6 +82,9 @@ export async function loader({ request }: LoaderFunctionArgs) {
     });
   }
 }
+
+// Wrap the loader with authentication requirement
+export const loader = requireAuth(myEventsLoader);
 
 export default function MyEventsPage() {
   const data = useLoaderData<typeof loader>() as MyEventsLoaderData;

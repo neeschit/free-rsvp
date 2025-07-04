@@ -1,13 +1,5 @@
-import { createHash } from "node:crypto";
+import { getUserId as getSessionUserId, requireUserId as requireSessionUserId } from "~/utils/session.server";
 
-const getHeader = (request: Request, header: string) => {
-    return request.headers.get(header) || "";
-};
-
-export function getUserId(request: Request) {
-    const userId =
-        getHeader(request, "x-forwarded-for") +
-        getHeader(request, "sec-ch-ua-platform") +
-        getHeader(request, "user-agent");
-    return createHash("md5").update(userId).digest('hex');
-}
+// Export session-based user identification
+export const getUserId = getSessionUserId;
+export const requireAuth = requireSessionUserId;

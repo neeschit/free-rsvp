@@ -1,7 +1,6 @@
 import { Resource } from "sst";
 import { QueryCommand, TransactWriteCommand } from "@aws-sdk/lib-dynamodb";
 import { redirect, useLoaderData, Form } from "react-router";
-import { noCacheHeaders } from "~/headers";
 import { getClient } from "~/model/client";
 import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from "react-router";
 import type { EventBase, RsvpBase, InviteMetadata } from "~/model/event";
@@ -13,7 +12,8 @@ import {
     createUserRsvpSK,
     extractEventIdFromPK
 } from "~/model/event";
-import { getUserId } from "~/model/userId.server";
+import { getUserId } from "~/utils/session.server";
+import { headers } from "~/headers";
 import { Button } from "~/components/ui/Button";
 import { EventDetails } from "~/components/events/EventDetails";
 import { GuestList } from "~/components/events/GuestList";
@@ -28,7 +28,7 @@ export const meta: MetaFunction = () => {
     ];
 };
 
-export { noCacheHeaders as headers };
+export { headers };
 
 export async function action({
     request,
@@ -37,7 +37,11 @@ export async function action({
     const formData = await request.formData();
     const client = getClient();
 
-    const userId = getUserId(request);
+    const userId = await getUserId(request);
+    
+    if (!userId) {
+        throw new Response('Unauthorized', { status: 401 });
+    }
 
     if (!params.eventId) {
         throw new Response('Event ID is required', {
@@ -137,7 +141,7 @@ export async function loader({
     params,
 }: LoaderFunctionArgs) {
     const client = getClient();
-    const headersToUse = noCacheHeaders();
+    const headersToUse = headers();
 
     const eventId = params.eventId;
     if (!eventId) {
@@ -147,7 +151,7 @@ export async function loader({
         });
     }
 
-    const userId = getUserId(request);
+    const userId = await getUserId(request);
 
     try {
         // First try to find the exact event by direct query

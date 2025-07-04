@@ -1,9 +1,9 @@
 import { Resource } from "sst";
 import type { ActionFunctionArgs } from "react-router";
 import { SESv2Client, SendEmailCommand } from "@aws-sdk/client-sesv2";
-import { PutCommand, QueryCommand } from "@aws-sdk/lib-dynamodb";
+import { PutCommand, QueryCommand, TransactWriteCommand, GetCommand } from "@aws-sdk/lib-dynamodb";
 import { getClient } from "~/model/client";
-import { getUserId } from "~/model/userId.server";
+import { getUserId } from "~/utils/session.server";
 import { 
     createEventPK, 
     createMetadataSK, 
@@ -20,7 +20,12 @@ export async function action({ request }: ActionFunctionArgs) {
         throw new Response("Method not allowed", { status: 405 });
     }
 
-    const userId = getUserId(request);
+    const userId = await getUserId(request);
+    
+    if (!userId) {
+        throw new Response("Unauthorized", { status: 401 });
+    }
+    
     const formData = await request.formData();
     const eventId = formData.get("eventId")?.toString();
     const recipients = JSON.parse(formData.get("recipients")?.toString() || "[]");
