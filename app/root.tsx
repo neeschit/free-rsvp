@@ -21,7 +21,6 @@ import { Header } from './components/Header';
 import { Footer } from './components/Footer';
 import { headers as headerUtils } from './headers';
 import { getUserId } from '~/utils/session.server';
-import { verifyToken } from '~/utils/auth.server';
 
 export type RootLoaderData = {
   ENV: {

@@ -1,22 +1,39 @@
 import { redirect } from "react-router";
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "react-router";
-import { getLogoutUrl } from "~/utils/auth.server";
 import { logout } from "~/utils/session.server";
 
-// Handle GET requests - redirect to logout URL
+// Handle GET requests - this handles the redirect back from Cognito after logout
 export async function loader({ request }: LoaderFunctionArgs) {
-  // This handles the redirect back from Cognito after logout
-  return redirect("/");
+  // Clear any remaining session data when coming back from Cognito
+  const destroyedSession = await logout(request);
+  
+  // Redirect to home page after logout with the session cleared
+  return redirect("/", {
+    headers: {
+      "Set-Cookie": destroyedSession,
+    },
+  });
 }
 
-// Handle POST requests - initiate logout
+// Handle POST requests - initiate logout process
 export async function action({ request }: ActionFunctionArgs) {
-  // Clear the user session
-  await logout(request);
+  // Import auth.server functions only within server-only functions
+  const { getLogoutUrl } = await import("~/utils/auth.server");
   
-  // Redirect to Cognito logout URL
-  const logoutUrl = getLogoutUrl();
-  return redirect(logoutUrl);
+  // Clear the local session first
+  const destroyedSession = await logout(request);
+  
+  // Get the base URL for the logout redirect
+  const url = new URL(request.url);
+  const logoutRedirectUrl = `${url.origin}/auth/logout`;
+  
+  // Redirect to Cognito logout URL which will invalidate tokens and redirect back
+  const logoutUrl = getLogoutUrl(logoutRedirectUrl);
+  return redirect(logoutUrl, {
+    headers: {
+      "Set-Cookie": destroyedSession,
+    },
+  });
 }
 
 // Default component for logout page

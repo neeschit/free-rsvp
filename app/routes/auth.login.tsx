@@ -1,9 +1,11 @@
 import { redirect } from "react-router";
 import type { LoaderFunctionArgs } from "react-router";
-import { getLoginUrl } from "~/utils/auth.server";
 import { getUserId } from "~/utils/session.server";
 
 export async function loader({ request }: LoaderFunctionArgs) {
+  // Import auth.server functions only within server-only functions
+  const { getLoginUrl } = await import("~/utils/auth.server");
+  
   // If user is already logged in, redirect to dashboard
   const userId = await getUserId(request);
   if (userId) {

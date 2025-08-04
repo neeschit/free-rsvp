@@ -1,13 +1,13 @@
 import { Link, useLoaderData } from "react-router";
 import { useState } from "react";
 import { AuthButton } from "./AuthButton";
-import { isAuthenticated } from "~/utils/auth.client";
 import type { RootLoaderData } from "~/root";
 
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { user } = useLoaderData<RootLoaderData>();
-  const userIsAuthenticated = isAuthenticated(user);
+  // Use direct boolean check instead of imported function for SSR safety
+  const userIsAuthenticated = Boolean(user && user.sub);
 
   return (
     <header className="sticky top-0 z-10 bg-white dark:bg-gray-900 shadow-sm dark:shadow-gray-800 py-4 px-6 md:px-12">

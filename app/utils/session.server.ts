@@ -52,11 +52,5 @@ export async function requireUserId(request: Request): Promise<string> {
 
 export async function logout(request: Request) {
   const session = await getUserSession(request);
-  return new Response(null, {
-    status: 302,
-    headers: {
-      Location: "/",
-      "Set-Cookie": await sessionStorage.destroySession(session),
-    },
-  });
+  return sessionStorage.destroySession(session);
 }

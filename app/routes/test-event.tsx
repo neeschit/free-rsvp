@@ -1,6 +1,6 @@
 import { headers } from "~/headers";
 import { useLoaderData } from "react-router";
-import type { EventBase, GuestBase } from "~/model/event";
+import type { EventBase, InvitationBase } from "~/model/event";
 import type { LoaderFunctionArgs } from "react-router";
 
 export async function loader({ request }: LoaderFunctionArgs) {
@@ -30,7 +30,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
 type EventLoaderData = {
     event: EventBase;
-    guests: GuestBase[];
+    guests: InvitationBase[];
     userId: string;
     isHost: boolean;
     isExactMatch: boolean;

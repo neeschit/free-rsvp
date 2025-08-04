@@ -55,58 +55,54 @@ export default $config({
 
         // Cognito User Pool for authentication
         const userPool = new sst.aws.CognitoUserPool("KiddobashUserPool", {
-            usernames: ["email", "preferred_username"],
+            usernames: ["email"],
             transform: {
-                userPool: {
-                    policies: {
-                        passwordPolicy: {
-                            minimumLength: 8,
-                            requireLowercase: true,
-                            requireNumbers: true,
-                            requireSymbols: false,
-                            requireUppercase: true,
-                        },
-                    },
-                    autoVerifiedAttributes: ["email"],
-                    usernameAttributes: ["email"],
+                userPool: (args) => {
+                    args.passwordPolicy = {
+                        minimumLength: 8,
+                        requireLowercase: true,
+                        requireNumbers: true,
+                        requireSymbols: false,
+                        requireUppercase: true,
+                    };
+                    args.autoVerifiedAttributes = ["email"];
+                    args.usernameAttributes = ["email"];
                 },
             },
         });
 
         const userPoolClient = userPool.addClient("KiddobashWebClient", {
             transform: {
-                userPoolClient: {
-                    allowedOAuthFlows: ["code"],
-                    allowedOAuthScopes: ["openid", "email", "profile"],
-                    allowedOAuthFlowsUserPoolClient: true,
-                    callbackUrls: [
+                client: (args) => {
+                    args.allowedOauthFlows = ["code"];
+                    args.allowedOauthScopes = ["openid", "email", "profile"];
+                    args.allowedOauthFlowsUserPoolClient = true;
+                    args.callbackUrls = [
                         "http://localhost:5173/auth/callback", // Local development
                         ...$app.stage === "production" 
                             ? ["https://kiddobash.com/auth/callback"]
                             : [`https://${$app.name}-${$app.stage}.sst.dev/auth/callback`]
-                    ],
-                    logoutUrls: [
+                    ];
+                    args.logoutUrls = [
                         "http://localhost:5173/auth/logout", // Local development  
                         ...$app.stage === "production"
                             ? ["https://kiddobash.com/auth/logout"] 
                             : [`https://${$app.name}-${$app.stage}.sst.dev/auth/logout`]
-                    ],
-                    supportedIdentityProviders: ["COGNITO"],
-                    generateSecret: false,
+                    ];
+                    args.supportedIdentityProviders = ["COGNITO"];
+                    args.generateSecret = false;
                 },
             },
         });
 
-        const userPoolDomain = userPool.addDomain("KiddobashAuthDomain", {
+        // Create Cognito domain using Pulumi AWS resource directly
+        const userPoolDomain = new aws.cognito.UserPoolDomain("KiddobashAuthDomain", {
             domain: `kiddobash-${$app.stage}`,
+            userPoolId: userPool.id,
         });
 
         // Define secrets
         const gtagIdSecret = new sst.Secret("GTAG_ID");
-        const cognitoClientIdSecret = new sst.Secret("COGNITO_CLIENT_ID");
-        const cognitoUserPoolIdSecret = new sst.Secret("COGNITO_USER_POOL_ID");
-        const cognitoRegionSecret = new sst.Secret("COGNITO_REGION");
-        const cognitoDomainSecret = new sst.Secret("COGNITO_DOMAIN");
 
         new sst.aws.React("KiddobashWeb", {
             link: [
@@ -116,19 +112,15 @@ export default $config({
                 emailBucket, 
                 userPool, 
                 userPoolClient, 
-                userPoolDomain,
-                cognitoClientIdSecret,
-                cognitoUserPoolIdSecret, 
-                cognitoRegionSecret,
-                cognitoDomainSecret
+                userPoolDomain
             ],
             environment: {
                 NODE_ENV: process.env.NODE_ENV || "production",
                 GTAG_ID: gtagIdSecret.value,
-                COGNITO_CLIENT_ID: cognitoClientIdSecret.value,
-                COGNITO_USER_POOL_ID: cognitoUserPoolIdSecret.value,
-                COGNITO_REGION: cognitoRegionSecret.value,
-                COGNITO_DOMAIN: cognitoDomainSecret.value,
+                COGNITO_CLIENT_ID: userPoolClient.id,
+                COGNITO_USER_POOL_ID: userPool.id,
+                COGNITO_REGION: aws.getRegionOutput().name,
+                COGNITO_DOMAIN: userPoolDomain.domain,
             },
             domain: $app.stage === "production" ? {
                 name: "kiddobash.com",

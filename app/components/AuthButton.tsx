@@ -1,5 +1,5 @@
 import { Form } from "react-router";
-import { isAuthenticated, getUserDisplayName } from "~/utils/auth.client";
+import { getUserDisplayName } from "~/utils/userHelpers";
 
 interface AuthButtonProps {
   user: any;
@@ -8,7 +8,10 @@ interface AuthButtonProps {
 }
 
 export function AuthButton({ user, className = "", isMobile = false }: AuthButtonProps) {
-  if (isAuthenticated(user)) {
+  // Use direct boolean check instead of imported function for SSR safety
+  const isAuthenticated = Boolean(user && user.sub);
+  
+  if (isAuthenticated) {
     // User is logged in - show user info and logout option
     const displayName = getUserDisplayName(user);
     
@@ -22,7 +25,7 @@ export function AuthButton({ user, className = "", isMobile = false }: AuthButto
         <Form method="post" action="/auth/logout">
           <button
             type="submit"
-            className="bg-gray-600 text-white px-4 py-2 rounded-full hover:bg-gray-700 transition-colors text-sm"
+            className="bg-red-700 text-white px-4 py-2 rounded-full hover:bg-red-800 transition-colors text-sm"
           >
             Logout
           </button>

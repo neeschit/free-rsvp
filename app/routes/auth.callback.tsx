@@ -1,9 +1,11 @@
 import { redirect } from "react-router";
 import type { LoaderFunctionArgs } from "react-router";
-import { exchangeCodeForTokens, verifyToken } from "~/utils/auth.server";
 import { createUserSession } from "~/utils/session.server";
 
 export async function loader({ request }: LoaderFunctionArgs) {
+  // Import auth.server functions only within server-only functions
+  const { exchangeCodeForTokens, verifyToken } = await import("~/utils/auth.server");
+  
   const url = new URL(request.url);
   const code = url.searchParams.get("code");
   const error = url.searchParams.get("error");

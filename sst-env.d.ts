@@ -22,9 +22,18 @@ declare module "sst" {
       "name": string
       "type": "sst.aws.Bucket"
     }
+    "KiddobashUserPool": {
+      "id": string
+      "type": "sst.aws.CognitoUserPool"
+    }
     "KiddobashWeb": {
       "type": "sst.aws.React"
       "url": string
+    }
+    "KiddobashWebClient": {
+      "id": string
+      "secret": string
+      "type": "sst.aws.CognitoUserPoolClient"
     }
   }
 }
