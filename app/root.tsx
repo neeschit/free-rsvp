@@ -20,20 +20,32 @@ import { env } from './config/env.server';
 import { Header } from './components/Header';
 import { Footer } from './components/Footer';
 import { headers as headerUtils } from './headers';
+import { getUserId } from '~/utils/session.server';
 
 export type RootLoaderData = {
   ENV: {
     NODE_ENV: string;
     GTAG_ID: string;
   };
+  user: any | null;
 };
 
 export async function loader({ request }: LoaderFunctionArgs) {
+  // Get user session
+  const userId = await getUserId(request);
+  let user = null;
+  
+  // If user is logged in, you could fetch additional user data here
+  if (userId) {
+    user = { sub: userId }; // Basic user object, could be expanded
+  }
+  
   const data: RootLoaderData = { 
     ENV: {  
       NODE_ENV: env.NODE_ENV,
       GTAG_ID: env.GTAG_ID,
-    }
+    },
+    user,
   };
   
   return new Response(JSON.stringify(data), {

@@ -1,8 +1,13 @@
-import { Link } from "react-router";
+import { Link, useLoaderData } from "react-router";
 import { useState } from "react";
+import { AuthButton } from "./AuthButton";
+import type { RootLoaderData } from "~/root";
 
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { user } = useLoaderData<RootLoaderData>();
+  // Use direct boolean check instead of imported function for SSR safety
+  const userIsAuthenticated = Boolean(user && user.sub);
 
   return (
     <header className="sticky top-0 z-10 bg-white dark:bg-gray-900 shadow-sm dark:shadow-gray-800 py-4 px-6 md:px-12">
@@ -15,14 +20,21 @@ export function Header() {
           />
           <span className="font-bold text-2xl text-indigo-600 dark:text-indigo-400">Kiddobash</span>
         </Link>
+        
         <nav className="hidden md:flex items-center gap-6">
-          <Link to="/my-events" className="text-gray-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400">
-            My Events
-          </Link>
-          <Link to="/create-event" className="bg-indigo-600 text-white px-4 py-2 rounded-full hover:bg-indigo-700 transition-colors">
-            Create New Event
-          </Link>
+          {userIsAuthenticated && (
+            <>
+              <Link to="/my-events" className="text-gray-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400">
+                My Events
+              </Link>
+              <Link to="/create-event" className="bg-indigo-600 text-white px-4 py-2 rounded-full hover:bg-indigo-700 transition-colors">
+                Create New Event
+              </Link>
+            </>
+          )}
+          <AuthButton user={user} />
         </nav>
+        
         <button 
           className="md:hidden text-gray-600 dark:text-gray-300"
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -37,20 +49,27 @@ export function Header() {
       {/* Mobile menu dropdown */}
       {mobileMenuOpen && (
         <div className="md:hidden absolute top-full left-0 right-0 bg-white dark:bg-gray-900 shadow-md dark:shadow-gray-800 py-4 px-6 flex flex-col gap-4">
-          <Link 
-            to="/my-events" 
-            className="text-gray-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 text-center"
-            onClick={() => setMobileMenuOpen(false)}
-          >
-            My Events
-          </Link>
-          <Link 
-            to="/create-event" 
-            className="bg-indigo-600 text-white px-4 py-2 rounded-full hover:bg-indigo-700 transition-colors text-center mt-2"
-            onClick={() => setMobileMenuOpen(false)}
-          >
-            Create New Event
-          </Link>
+          {userIsAuthenticated && (
+            <>
+              <Link 
+                to="/my-events" 
+                className="text-gray-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 text-center"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                My Events
+              </Link>
+              <Link 
+                to="/create-event" 
+                className="bg-indigo-600 text-white px-4 py-2 rounded-full hover:bg-indigo-700 transition-colors text-center"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Create New Event
+              </Link>
+            </>
+          )}
+          <div className="flex justify-center">
+            <AuthButton user={user} isMobile={true} />
+          </div>
         </div>
       )}
     </header>

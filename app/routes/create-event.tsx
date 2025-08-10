@@ -4,7 +4,8 @@ import { PutCommand, TransactWriteCommand } from "@aws-sdk/lib-dynamodb";
 import type { ActionFunctionArgs, MetaFunction } from "react-router";
 import { headers } from "~/headers";
 import { getClient } from "~/model/client";
-import { getUserId } from "~/model/userId.server";
+import { getUserId } from "~/utils/session.server";
+import { requireAuth } from "~/utils/requireAuth";
 import { createEventPK, createUserPK, createMetadataSK, createEventSK } from "~/model/event";
 import { getEventId } from "~/model/eventId.server";
 import { FormInput } from "~/components/forms/FormInput";
@@ -13,6 +14,7 @@ import { Button } from "~/components/ui/Button";
 import { Card } from "~/components/ui/Card";
 import { Heading, Text, Label } from "~/components/ui/Typography";
 import { container, bgSecondary, textPrimary, formSection } from "~/styles/tailwind-patterns";
+import { Section } from "~/components/ui/Section";
 import { useState } from "react";
 import { addDays, addWeeks, addMonths } from "~/utils/dateUtils";
 
@@ -26,10 +28,24 @@ export const meta: MetaFunction = () => {
 export async function action({
   request
 }: ActionFunctionArgs) {
+  // CSRF defense-in-depth: verify Origin/Referer
+  const url = new URL(request.url);
+  const origin = request.headers.get("Origin");
+  const referer = request.headers.get("Referer");
+  const matchesOrigin = origin ? origin === url.origin : true;
+  const matchesReferer = referer ? referer.startsWith(url.origin + "/") : true;
+  if (!matchesOrigin || !matchesReferer) {
+    throw new Response('Invalid origin', { status: 403 });
+  }
+
   const formData = await request.formData();
   const client = getClient();
 
-  const userId = getUserId(request);
+  const userId = await getUserId(request);
+  
+  if (!userId) {
+    throw new Response('Unauthorized', { status: 401 });
+  }
 
   const eventName = formData.get('eventName')?.toString();
   if (!eventName) {
@@ -114,11 +130,14 @@ export async function action({
   }
 }
 
-export async function loader() {
+async function createEventLoader() {
   return new Response(JSON.stringify({}), {
     headers: headers(),
   });
 }
+
+// Wrap the loader with authentication requirement
+export const loader = requireAuth(createEventLoader);
 
 export default function CreateEvent() {
   // Get current date in YYYY-MM-DD format for default date value
@@ -153,12 +172,11 @@ export default function CreateEvent() {
 
   return (
     <main className={`flex-grow ${bgSecondary} ${textPrimary}`}>
-      <div className={container}>
-        <div className="py-8 text-center">
-          <Heading level={1} className="mb-8">Let's get this event planned <span className="text-4xl">🎉</span></Heading>
-          
-          <Card className="mt-8 max-w-xl mx-auto">
-            <Form method="post" className={formSection}>
+      <Section as="section" useSectionPadding className="text-center">
+        <Heading level={1} className="mb-8">Let's get this event planned <span className="text-4xl">🎉</span></Heading>
+
+        <Card className="mt-8 max-w-xl mx-auto">
+          <Form method="post" className={formSection}>
               <div className="space-y-6 text-left">
                 <div>
                   <FormInput
@@ -306,8 +324,7 @@ export default function CreateEvent() {
               </Button>
             </Form>
           </Card>
-        </div>
-      </div>
+      </Section>
     </main>
   );
 } 

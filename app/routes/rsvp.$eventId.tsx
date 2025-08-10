@@ -1,5 +1,5 @@
 import { Resource } from "sst";
-import { QueryCommand, TransactWriteCommand } from "@aws-sdk/lib-dynamodb";
+import { QueryCommand, PutCommand, TransactWriteCommand } from "@aws-sdk/lib-dynamodb";
 import { redirect, useLoaderData, Form } from "react-router";
 import { noCacheHeaders } from "~/headers";
 import { getClient } from "~/model/client";
@@ -13,7 +13,7 @@ import {
     createUserRsvpSK,
     extractEventIdFromPK
 } from "~/model/event";
-import { getUserId } from "~/model/userId.server";
+import { getUserId } from "~/utils/session.server";
 import { RsvpForm } from "~/components/events/RsvpForm";
 import { Card } from "~/components/ui/Card";
 import { Heading, Text } from "~/components/ui/Typography";
@@ -33,11 +33,24 @@ export async function action({
     request,
     params
 }: ActionFunctionArgs) {
+    // CSRF defense-in-depth: verify Origin/Referer
+    const url = new URL(request.url);
+    const origin = request.headers.get("Origin");
+    const referer = request.headers.get("Referer");
+    const matchesOrigin = origin ? origin === url.origin : true;
+    const matchesReferer = referer ? referer.startsWith(url.origin + "/") : true;
+    if (!matchesOrigin || !matchesReferer) {
+        throw new Response("Invalid origin", { status: 403 });
+    }
     const formData = await request.formData();
     const client = getClient();
     const headersToUse = noCacheHeaders();
 
-    const userId = getUserId(request);
+    const userId = await getUserId(request);
+    
+    if (!userId) {
+        throw new Response('Unauthorized', { status: 401 });
+    }
 
     if (!params.eventId) {
         throw new Response('Event ID is required', {
@@ -162,7 +175,7 @@ export async function loader({
         });
     }
 
-    const userId = getUserId(request);
+    const userId = await getUserId(request);
 
     try {
         // First try to find the exact event by direct query
