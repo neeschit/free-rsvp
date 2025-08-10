@@ -1,15 +1,17 @@
 import { createCookieSessionStorage } from "react-router";
+import type { Session } from "react-router";
+import { env } from "~/config/env.server";
 
 // Session configuration for storing user authentication
 const sessionStorage = createCookieSessionStorage({
   cookie: {
-    name: "__kiddobash_session",
+    name: env.NODE_ENV === "production" ? "__Host-kiddobash_session" : "__kiddobash_session",
     httpOnly: true,
     maxAge: 60 * 60 * 24 * 7, // 7 days
     path: "/",
     sameSite: "lax",
-    secrets: [process.env.SESSION_SECRET || "fallback-secret-for-development"],
-    secure: process.env.NODE_ENV === "production",
+    secrets: [env.SESSION_SECRET],
+    secure: env.NODE_ENV === "production",
   },
 });
 
@@ -34,6 +36,10 @@ export async function getUserSession(request: Request) {
     request.headers.get("Cookie")
   );
   return session;
+}
+
+export async function commitSession(session: Session) {
+  return sessionStorage.commitSession(session);
 }
 
 export async function getUserId(request: Request): Promise<string | null> {

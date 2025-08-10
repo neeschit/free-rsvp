@@ -103,11 +103,13 @@ export default $config({
 
         // Define secrets
         const gtagIdSecret = new sst.Secret("GTAG_ID");
+        const sessionSecret = new sst.Secret("SESSION_SECRET");
 
         new sst.aws.React("KiddobashWeb", {
             link: [
                 table, 
-                gtagIdSecret, 
+                gtagIdSecret,
+                sessionSecret,
                 email, 
                 emailBucket, 
                 userPool, 
@@ -117,6 +119,7 @@ export default $config({
             environment: {
                 NODE_ENV: process.env.NODE_ENV || "production",
                 GTAG_ID: gtagIdSecret.value,
+                SESSION_SECRET: sessionSecret.value,
                 COGNITO_CLIENT_ID: userPoolClient.id,
                 COGNITO_USER_POOL_ID: userPool.id,
                 COGNITO_REGION: aws.getRegionOutput().name,

@@ -4,13 +4,14 @@ import { logout } from "~/utils/session.server";
 
 // Handle GET requests - this handles the redirect back from Cognito after logout
 export async function loader({ request }: LoaderFunctionArgs) {
-  // Clear any remaining session data when coming back from Cognito
+  // Clear all session data when coming back from Cognito
   const destroyedSession = await logout(request);
   
   // Redirect to home page after logout with the session cleared
   return redirect("/", {
     headers: {
       "Set-Cookie": destroyedSession,
+      "Cache-Control": "no-store",
     },
   });
 }
@@ -32,6 +33,7 @@ export async function action({ request }: ActionFunctionArgs) {
   return redirect(logoutUrl, {
     headers: {
       "Set-Cookie": destroyedSession,
+      "Cache-Control": "no-store",
     },
   });
 }

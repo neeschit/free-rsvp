@@ -17,6 +17,7 @@ export interface CognitoUser {
   email_verified?: boolean;
   preferred_username?: string;
   'cognito:username'?: string;
+  nonce?: string;
   aud: string; // Client ID
   iss: string; // Issuer
   exp: number; // Expiration
@@ -46,10 +47,16 @@ export function verifyToken(token: string): Promise<CognitoUser> {
         audience: env.COGNITO_CLIENT_ID,
         issuer: `https://cognito-idp.${env.COGNITO_REGION}.amazonaws.com/${env.COGNITO_USER_POOL_ID}`,
         algorithms: ['RS256'],
+        clockTolerance: 60, // allow small clock skew
       },
       (err: jwt.VerifyErrors | null, decoded: any) => {
         if (err) {
           reject(err);
+          return;
+        }
+        // Ensure we are validating an ID token
+        if (decoded?.token_use !== 'id') {
+          reject(new Error('Invalid token_use: expected id token'));
           return;
         }
         resolve(decoded as CognitoUser);
@@ -64,7 +71,7 @@ export function getUserIdFromToken(token: string): Promise<string> {
 }
 
 // Generate Cognito Hosted UI login URL
-export function getLoginUrl(redirectUri?: string, state?: string): string {
+export function getLoginUrl(redirectUri?: string, state?: string, nonce?: string, codeChallenge?: string): string {
   const params = new URLSearchParams({
     response_type: 'code',
     client_id: env.COGNITO_CLIENT_ID,
@@ -74,6 +81,15 @@ export function getLoginUrl(redirectUri?: string, state?: string): string {
 
   if (state) {
     params.set('state', state);
+  }
+
+  if (nonce) {
+    params.set('nonce', nonce);
+  }
+
+  if (codeChallenge) {
+    params.set('code_challenge_method', 'S256');
+    params.set('code_challenge', codeChallenge);
   }
 
   return `https://${env.COGNITO_DOMAIN}.auth.${env.COGNITO_REGION}.amazoncognito.com/login?${params}`;
@@ -90,7 +106,7 @@ export function getLogoutUrl(redirectUri?: string): string {
 }
 
 // Exchange authorization code for tokens
-export async function exchangeCodeForTokens(code: string, redirectUri: string) {
+export async function exchangeCodeForTokens(code: string, redirectUri: string, codeVerifier?: string) {
   const tokenEndpoint = `https://${env.COGNITO_DOMAIN}.auth.${env.COGNITO_REGION}.amazoncognito.com/oauth2/token`;
   
   const params = new URLSearchParams({
@@ -99,6 +115,10 @@ export async function exchangeCodeForTokens(code: string, redirectUri: string) {
     code,
     redirect_uri: redirectUri,
   });
+
+  if (codeVerifier) {
+    params.set('code_verifier', codeVerifier);
+  }
 
   const response = await fetch(tokenEndpoint, {
     method: 'POST',

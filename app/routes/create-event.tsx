@@ -28,6 +28,16 @@ export const meta: MetaFunction = () => {
 export async function action({
   request
 }: ActionFunctionArgs) {
+  // CSRF defense-in-depth: verify Origin/Referer
+  const url = new URL(request.url);
+  const origin = request.headers.get("Origin");
+  const referer = request.headers.get("Referer");
+  const matchesOrigin = origin ? origin === url.origin : true;
+  const matchesReferer = referer ? referer.startsWith(url.origin + "/") : true;
+  if (!matchesOrigin || !matchesReferer) {
+    throw new Response('Invalid origin', { status: 403 });
+  }
+
   const formData = await request.formData();
   const client = getClient();
 
