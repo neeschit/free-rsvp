@@ -5,7 +5,8 @@ import type { RootLoaderData } from "~/root";
 
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const { user } = useLoaderData<RootLoaderData>();
+  const data = useLoaderData<RootLoaderData | undefined>();
+  const user = data?.user ?? null;
   // Use direct boolean check instead of imported function for SSR safety
   const userIsAuthenticated = Boolean(user && user.sub);
 
