@@ -9,7 +9,19 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const url = new URL(request.url);
   const code = url.searchParams.get("code");
   const error = url.searchParams.get("error");
-  const redirectTo = url.searchParams.get("redirectTo") || "/my-events";
+  // Prefer app redirect from OAuth state; fallback to default
+  const state = url.searchParams.get("state");
+  let redirectTo = "/my-events";
+  if (state && state.startsWith("redirectTo=")) {
+    try {
+      const value = decodeURIComponent(state.slice("redirectTo=".length));
+      if (value.startsWith("/")) {
+        redirectTo = value;
+      }
+    } catch (e) {
+      // ignore malformed state
+    }
+  }
 
   // Handle OAuth errors
   if (error) {
@@ -28,7 +40,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     const callbackUrl = new URL(request.url);
     callbackUrl.searchParams.delete("code");
     callbackUrl.searchParams.delete("state");
-    callbackUrl.searchParams.delete("redirectTo");
+    callbackUrl.searchParams.delete("state");
     
     const tokens = await exchangeCodeForTokens(code, callbackUrl.toString());
     

@@ -64,13 +64,17 @@ export function getUserIdFromToken(token: string): Promise<string> {
 }
 
 // Generate Cognito Hosted UI login URL
-export function getLoginUrl(redirectUri?: string): string {
+export function getLoginUrl(redirectUri?: string, state?: string): string {
   const params = new URLSearchParams({
     response_type: 'code',
     client_id: env.COGNITO_CLIENT_ID,
     redirect_uri: redirectUri || `${getBaseUrl()}/auth/callback`,
     scope: 'openid email profile',
   });
+
+  if (state) {
+    params.set('state', state);
+  }
 
   return `https://${env.COGNITO_DOMAIN}.auth.${env.COGNITO_REGION}.amazoncognito.com/login?${params}`;
 }

@@ -16,13 +16,13 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const url = new URL(request.url);
   const redirectTo = url.searchParams.get("redirectTo");
   
-  // Generate callback URL with redirect destination
+  // Generate callback URL (do not include app-specific redirect as part of redirect_uri)
   const callbackUrl = new URL("/auth/callback", url.origin);
-  if (redirectTo) {
-    callbackUrl.searchParams.set("redirectTo", redirectTo);
-  }
+  
+  // Use OAuth state to carry app-specific redirect destination
+  const state = redirectTo ? `redirectTo=${encodeURIComponent(redirectTo)}` : undefined;
   
   // Redirect to Cognito Hosted UI
-  const loginUrl = getLoginUrl(callbackUrl.toString());
+  const loginUrl = getLoginUrl(callbackUrl.toString(), state);
   return redirect(loginUrl);
 }
