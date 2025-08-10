@@ -14,6 +14,7 @@ import { Button } from "~/components/ui/Button";
 import { Card } from "~/components/ui/Card";
 import { Heading, Text, Label } from "~/components/ui/Typography";
 import { container, bgSecondary, textPrimary, formSection } from "~/styles/tailwind-patterns";
+import { Section } from "~/components/ui/Section";
 import { useState } from "react";
 import { addDays, addWeeks, addMonths } from "~/utils/dateUtils";
 
@@ -161,12 +162,11 @@ export default function CreateEvent() {
 
   return (
     <main className={`flex-grow ${bgSecondary} ${textPrimary}`}>
-      <div className={container}>
-        <div className="py-8 text-center">
-          <Heading level={1} className="mb-8">Let's get this event planned <span className="text-4xl">🎉</span></Heading>
-          
-          <Card className="mt-8 max-w-xl mx-auto">
-            <Form method="post" className={formSection}>
+      <Section as="section" useSectionPadding className="text-center">
+        <Heading level={1} className="mb-8">Let's get this event planned <span className="text-4xl">🎉</span></Heading>
+
+        <Card className="mt-8 max-w-xl mx-auto">
+          <Form method="post" className={formSection}>
               <div className="space-y-6 text-left">
                 <div>
                   <FormInput
@@ -314,8 +314,7 @@ export default function CreateEvent() {
               </Button>
             </Form>
           </Card>
-        </div>
-      </div>
+      </Section>
     </main>
   );
 } 

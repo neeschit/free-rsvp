@@ -5,6 +5,8 @@
   "type": "module",
   "scripts": {
     "build": "react-router build",
+    "deploy": "sst deploy",
+    "deploy:prod": "sst deploy --stage production",
     "dev": "react-router dev",
     "dev:sst": "sst dev",
     "start": "react-router-serve ./build/server/index.js",
@@ -27,7 +29,8 @@
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-router": "^7.4.1",
-    "react-router-dom": "^7.4.1",
+    "@aws-sdk/client-dynamodb": "^3.830.0",
+    "@aws-sdk/lib-dynamodb": "^3.830.0",
     "zod": "^3.24.2"
   },
   "devDependencies": {
@@ -37,9 +40,7 @@
     "@types/node": "^20",
     "@types/react": "^19.0.1",
     "@types/react-dom": "^19.0.1",
-    "autoprefixer": "^10.4.21",
     "dotenv": "^16.4.7",
-    "react-router-devtools": "^1.1.0",
     "sst": "3.11.11",
     "tailwindcss": "^4.0.0",
     "typescript": "^5.7.2",
